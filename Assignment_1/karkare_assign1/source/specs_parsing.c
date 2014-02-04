@@ -66,6 +66,7 @@ void parse_specs(struct task_list* task, char* filename)
 		data = strtok(readline," ");
 		if(strcmp(data,"P") == 0)	 		// If first token is P then its periodic task
 		{
+			printf("here \n");
 			ptask = (struct period_task*)malloc(sizeof(struct period_task));
 			ptask->start 	= NULL;
 			ptask->currpos	= NULL;
@@ -96,10 +97,31 @@ void parse_specs(struct task_list* task, char* filename)
 			{
 				act = (struct activities*)malloc(sizeof(struct activities));
 				act->next = NULL;
-				if(data[0] >= '0' && data[0] <= '9')
-					
+				if(data[0] >= '0' && data[0] <= '9') {
+					act->work = atoi(data);	
+					act->type = 'C';
+				}
+				else if(data[0] == 'L') {
+					sscanf(data,"L(%d)",&act->work);
+					act->type = 'L';
+				}
+				else if(data[0] == 'U') {
+					sscanf(data,"U(%d)",&act->work);
+					act->type = 'U';
+				}
 
+				// Adding activity one at a time
+				if(ptask->start == NULL){
+					ptask->start = act;
+					ptask->currpos = act;
+				}
+				else {
+					ptask->currpos->next = act;
+					ptask->currpos	     = act;
+				}
+				
 			}
+			ptask->currpos = ptask->start;
 			
 
 		}
@@ -129,19 +151,41 @@ void parse_specs(struct task_list* task, char* filename)
 			// Extracting the priority
 			data = strtok(NULL," ");
 			etask->priority = atoi(data);
+
+			// Extracting the Body of the task
+                        while(data = strtok(NULL," "))
+                        {
+                                act = (struct activities*)malloc(sizeof(struct activities));
+                                act->next = NULL;
+                                if(data[0] >= '0' && data[0] <= '9') {  
+                                        act->work = atoi(data);
+                                        act->type = 'C';
+                                }
+                                else if(data[0] == 'L') {
+                                        sscanf(data,"L(%d)",&act->work);
+                                        act->type = 'L';
+                                }
+                                else if(data[0] == 'U') {
+                                        sscanf(data,"U(%d)",&act->work);
+                                        act->type = 'U';
+                                }
+
+                                // Adding activity one at a time
+                                if(etask->start == NULL){
+                                        etask->start = act;
+                                        etask->currpos = act;
+                                }
+                                else {
+                                        etask->currpos->next = act;
+                                        etask->currpos       = act;
+                                }
+                                
+                        }
+                        etask->currpos = etask->start;
+
+
 		
 		}
-		
-
-		do{
-			if(data[strlen(data)-1] == '\n')
-				data[strlen(data) -1] = '\0';
-			printf("Token = %s \n",data);
-			
-
-			data = strtok(NULL, " ");
-		}while(data);
-
 	}
 
 
