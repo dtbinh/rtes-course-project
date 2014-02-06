@@ -47,10 +47,22 @@ struct task_list{
 		struct event_task*  ehead;	// Linklist to store all the event tasks data
 	};
 
+/*
+ *  This structure stores the list of pthread ids in form of linked list.
+ *  Which is used to send the event signal to the registered thread.
+ */ 
+struct event_list {
+        pthread_t tid;
+        struct event_list* next;
+};
+
 
 void periodic_function(void*);
 void event_function(void*);
 
 void parse_specs(struct task_list* , char*);
+
+void event_handler();
+void register_for_event(pthread_t, int, struct event_list**);
 
 #endif	/* structures.h */

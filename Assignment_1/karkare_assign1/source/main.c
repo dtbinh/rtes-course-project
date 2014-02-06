@@ -2,6 +2,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <pthread.h>
 
 #include "../include/structures.h"
 
@@ -12,10 +13,17 @@ int main(int argc,char** argv)
 	struct period_task*	ptmp	= NULL;
 	struct event_task*	etmp	= NULL;
 	struct activities*	atmp 	= NULL;
+	struct event_list*	elist[10];
+	struct event_list*	tmp;
 	struct task_list tasks;
 
+	int  i;
+
 	tasks.phead = NULL;
-	tasks.ehead = NULL;	
+	tasks.ehead = NULL;
+
+	for(i = 0;i < 10;i++)
+		elist[i] = NULL;	
 
 	/* If you do not enter the filename or add more than 1 agruments */
 	if(argc != 2)
@@ -67,6 +75,23 @@ int main(int argc,char** argv)
                 etmp = etmp->next;
         }
 
+	register_for_event(10,3,elist);
+	register_for_event(12,3,elist);
+
+	for(i = 0; i < 10;i++)
+	{
+		tmp = elist[i];
+		printf("%d -- ",i);
+		while(tmp != NULL)
+		{
+			printf("%d \t",(int)tmp->tid);
+			tmp = tmp->next;
+		}
+		printf("\n");
+
+	}
+
+	event_handler();
 
 
 	if(!filename)
