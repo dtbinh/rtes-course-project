@@ -19,20 +19,14 @@ void parse_specs(struct task_list* task, char* filename)
 	char*	fullfilename 	= (char*)malloc(sizeof(char)*100);	//  Will hold the sull path of the file
 	char* 	readline	= (char*)malloc(sizeof(char)*200);	// Stores the 1 line from the spec file
 
-	struct  period_task*	ptask 	=	NULL;			// To create the periodic task
-	struct 	period_task*	ptmp	=	NULL;			// To hold the last position in the linked list
-	struct	event_task*	etask	= 	NULL;			// to create the event task
-	struct 	event_task*	etmp	=	NULL;			// To hold the last position in the linked list
+	struct  task_struct_t*	ptask 	=	NULL;			// To create the periodic task
+	struct 	task_struct_t*	ptmp	=	NULL;			// To hold the last position in the linked list
 	struct 	activities*	act	=	NULL;			// To create the activity
 	
-	int 	token_count = 1;
 	int 	task_num;
 	int 	i;
 	size_t	n;
 	
-	char	token1[10];
-	char	token2[10];
-
 	
 	// Creating the full path name
 	strcpy(fullfilename,filepath);
@@ -41,7 +35,7 @@ void parse_specs(struct task_list* task, char* filename)
 
 	// Opening the file for reading , if any problem exit the program
 	fp = fopen((const char*)fullfilename , "r");
-	if(!fp)
+	if(fp == NULL)
 	{
 		printf("Error opening the file : %s \n",filename);
 		printf("Error : %s \n",strerror(errno));
@@ -62,130 +56,74 @@ void parse_specs(struct task_list* task, char* filename)
 	{
 		getline(&readline,&n,fp);
 
-		// Extract first token
+		ptask = (struct task_struct_t*)malloc(sizeof(struct task_struct_t));
+		ptask->start 	= NULL;
+		ptask->currpos	= NULL;
+		ptask->next	= NULL;
+
+		// Extracting the first token
 		data = strtok(readline," ");
-		if(strcmp(data,"P") == 0)	 		// If first token is P then its periodic task
+
+		if(data[0] == 'P')
+			ptask->task_type = 'P';
+		else
+			ptask->task_type = 'A';
+
+		// Adding the task to the  task linked list		
+		if(task->head == NULL)
 		{
-			printf("here \n");
-			ptask = (struct period_task*)malloc(sizeof(struct period_task));
-			ptask->start 	= NULL;
-			ptask->currpos	= NULL;
-			ptask->next	= NULL;
+			task->head = ptask;
+			ptmp = ptask;
+		}
+		else
+		{
+			ptmp->next = ptask;
+			ptmp = ptask;
+		}
 
-			// Adding the task to the periodic task linked list		
-			if(task->phead == NULL)
-			{
-				task->phead = ptask;
-				ptmp = ptask;
+		// Extracting the period 
+		data = strtok(NULL," ");
+		ptask->period_event = atoi(data);
+
+		// Extracting the priority
+		data = strtok(NULL," ");
+		ptask->priority = atoi(data);
+
+		// Extracting the Body of the task
+		data = strtok(NULL," ");
+		while(data != NULL)
+		{
+			act = (struct activities*)malloc(sizeof(struct activities));
+			act->next = NULL;
+			if(data[0] >= '0' && data[0] <= '9') {
+				act->work = atoi(data);	
+				act->type = 'C';
 			}
-			else
-			{
-				ptmp->next = ptask;
-				ptmp = ptask;
+			else if(data[0] == 'L') {
+				sscanf(data,"L(%d)",&act->work);
+				act->type = 'L';
+			}
+			else if(data[0] == 'U') {
+				sscanf(data,"U(%d)",&act->work);
+				act->type = 'U';
 			}
 
-			// Extracting the period 
-			data = strtok(NULL," ");
-			ptask->period = atoi(data);
-
-			// Extracting the priority
-			data = strtok(NULL," ");
-			ptask->priority = atoi(data);
-
-			// Extracting the Body of the task
-			while(data = strtok(NULL," "))
-			{
-				act = (struct activities*)malloc(sizeof(struct activities));
-				act->next = NULL;
-				if(data[0] >= '0' && data[0] <= '9') {
-					act->work = atoi(data);	
-					act->type = 'C';
-				}
-				else if(data[0] == 'L') {
-					sscanf(data,"L(%d)",&act->work);
-					act->type = 'L';
-				}
-				else if(data[0] == 'U') {
-					sscanf(data,"U(%d)",&act->work);
-					act->type = 'U';
-				}
-
-				// Adding activity one at a time
-				if(ptask->start == NULL){
-					ptask->start = act;
-					ptask->currpos = act;
-				}
-				else {
-					ptask->currpos->next = act;
-					ptask->currpos	     = act;
-				}
-				
+			// Adding activity one at a time
+			if(ptask->start == NULL){
+				ptask->start = act;
+				ptask->currpos = act;
 			}
-			ptask->currpos = ptask->start;
+			else {
+				ptask->currpos->next = act;
+				ptask->currpos	     = act;
+			}
 			
 
+			data = strtok(NULL, " ");
 		}
-		else						// If first token is A then its event task
-		{
-			etask = (struct event_task*)malloc(sizeof(struct event_task));
-                        etask->start    = NULL;
-                        etask->currpos  = NULL;
-                        etask->next     = NULL;
+		ptask->currpos = ptask->start;
+			
 
-                        // Adding the task to the event task linked list            
-                        if(task->ehead == NULL)
-                        {
-                                task->ehead = etask;
-                                etmp = etask;
-                        }
-                        else
-                        {
-                                etmp->next = etask;
-                                etmp = etask;
-                        }
-
-			// Extracting the event
-			data = strtok(NULL," ");
-			etask->event = atoi(data);
-
-			// Extracting the priority
-			data = strtok(NULL," ");
-			etask->priority = atoi(data);
-
-			// Extracting the Body of the task
-                        while(data = strtok(NULL," "))
-                        {
-                                act = (struct activities*)malloc(sizeof(struct activities));
-                                act->next = NULL;
-                                if(data[0] >= '0' && data[0] <= '9') {  
-                                        act->work = atoi(data);
-                                        act->type = 'C';
-                                }
-                                else if(data[0] == 'L') {
-                                        sscanf(data,"L(%d)",&act->work);
-                                        act->type = 'L';
-                                }
-                                else if(data[0] == 'U') {
-                                        sscanf(data,"U(%d)",&act->work);
-                                        act->type = 'U';
-                                }
-
-                                // Adding activity one at a time
-                                if(etask->start == NULL){
-                                        etask->start = act;
-                                        etask->currpos = act;
-                                }
-                                else {
-                                        etask->currpos->next = act;
-                                        etask->currpos       = act;
-                                }
-                                
-                        }
-                        etask->currpos = etask->start;
-
-
-		
-		}
 	}
 
 

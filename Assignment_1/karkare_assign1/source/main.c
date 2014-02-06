@@ -10,8 +10,7 @@
 int main(int argc,char** argv)
 {
 	char* filename;
-	struct period_task*	ptmp	= NULL;
-	struct event_task*	etmp	= NULL;
+	struct task_struct_t*	etmp	= NULL;
 	struct activities*	atmp 	= NULL;
 	struct event_list*	elist[10];
 	struct event_list*	tmp;
@@ -19,8 +18,7 @@ int main(int argc,char** argv)
 
 	int  i;
 
-	tasks.phead = NULL;
-	tasks.ehead = NULL;
+	tasks.head = NULL;
 
 	for(i = 0;i < 10;i++)
 		elist[i] = NULL;	
@@ -42,30 +40,17 @@ int main(int argc,char** argv)
 	// Parse the specification file
 	parse_specs(&tasks,filename);
 
+	printf("here \n");
 
 	// Printing the task specs
-	ptmp = tasks.phead;
-	etmp = tasks.ehead;
+	etmp = tasks.head;
 	
 	printf("Total time of execution = %d \n",tasks.total_time);
 
-	printf("Periodic tasks \n");
-	while(ptmp !=  NULL)
-	{
-		printf("%d -- %d --- \t",ptmp->period,ptmp->priority);
-		atmp = ptmp->start;
-		while(atmp != NULL){
-			printf("%d-%d    ",atmp->type,atmp->work);
-			atmp = atmp->next;
-		}
-		printf("\n");
-		ptmp = ptmp->next;
-	}
-
-	printf("Aperiodice Tasks \n");
+	printf("All Tasks \n");
 	while(etmp !=  NULL)
         {
-                printf("%d -- %d --- \t",etmp->event,etmp->priority);
+                printf("%c -- %d -- %d --- \t",etmp->task_type,etmp->period_event,etmp->priority);
                 atmp = etmp->start;
                 while(atmp != NULL){
                         printf("%d-%d    ",atmp->type,atmp->work);

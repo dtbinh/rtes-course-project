@@ -4,7 +4,7 @@
 CC = gcc
 
 # Compiler flags
-CFLAGS= -Wall
+CFLAGS= -Wall -g
 
 # Linking flags
 LDFLAGS= -pthread
@@ -38,11 +38,11 @@ endif
 
 # Object File for Miscelleneous Functions
 $(INPUT_PATH)specs_parsing.o : $(patsubst %.o, %.c, $@) $(INPUT_PATH)../include/structures.h
-	$(CC) -c $(patsubst %.o, %.c, $@) -o $@
+	$(CC) -c $(patsubst %.o, %.c, $@) -o $@ $(CFLAGS) $(LDFLAGS)
 
 # Object File for Miscelleneous Functions
 $(INPUT_PATH)event_handling.o : $(patsubst %.o, %.c, $@) $(INPUT_PATH)../include/structures.h
-	$(CC) -c $(patsubst %.o, %.c, $@) -o $@
+	$(CC) -c $(patsubst %.o, %.c, $@) -o $@ $(CFLAGS) $(LDFLAGS)
 	
 .PHONY : clean
 clean :

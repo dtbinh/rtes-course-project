@@ -13,29 +13,18 @@ struct activities{
 
 
 /*
- *  This structure contains the data of a periodic task such as
- *  period , priority and the activities to be done in the task.
+ *  This structure contains the data of a  task such as
+ *  period_event , priority and the activities to be done in the task.
  */
-struct period_task{
-		int period;			// Period of the periodic task
+struct task_struct_t{
+		int task_type;			// 'P' for periodice task and 'A' for Aperiodic task
+		int period_event;		// Period/Event of the task
 		int priority;			// RealTime priority of the task
 		struct activities* start;	// Linklist head to store all the activity of a periodic task
 		struct activities* currpos;	// Which current activity a task is performing
-		struct period_task* next;
+		struct task_struct_t* next;
 	};
 
-
-/* 
- *  This structure contains the data of a periodic task such as
- *  on which event this task will run , priority and the activities to be done in the task.
- */
-struct event_task{
-		int event;			// This task is triggereb by this event number
-		int priority;			// Realtime priority of the task
-		struct activities* start;       // Linklist head to store all the activity of a event-driven task
-                struct activities* currpos;     // Which current activity a task is performing
-		struct event_task* next;
-        };
 
 /*
  *  This structure contains linked list of all the periodic and 
@@ -43,8 +32,7 @@ struct event_task{
  */
 struct task_list{
 		int total_time;			// total execution time of the program
-		struct period_task* phead;	// Linklist to store all the preiodic tasks data
-		struct event_task*  ehead;	// Linklist to store all the event tasks data
+		struct task_struct_t* head;	// Linklist to store all the tasks data
 	};
 
 /*

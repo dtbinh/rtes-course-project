@@ -4,6 +4,7 @@
 #include <dirent.h>
 #include <errno.h>
 #include <error.h>
+#include <unistd.h>
 #include <sys/select.h>
 #include <linux/input.h>
 #include <sys/types.h>
