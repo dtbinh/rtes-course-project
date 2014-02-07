@@ -6,20 +6,27 @@
 
 #include "../include/structures.h"
 
+pthread_mutex_t		mutexLock[10];
+
 
 int main(int argc,char** argv)
 {
-	char* filename;
-	struct task_struct_t*	etmp	= NULL;
+	char* filename;						// Stores the specification filename
+	struct task_struct_t*	etmp	= NULL;				
 	struct activities*	atmp 	= NULL;
 	struct event_list*	elist[10];
 	struct event_list*	tmp;
 	struct task_list tasks;
 
-	int  i;
+	int i;
 
+    	// Mutex and pthread attribute variables
+	pthread_mutexattr_t 	lock_attrib;
+	pthread_attr_t		thread_attrib;
+
+
+	// Initializing the variables
 	tasks.head = NULL;
-
 	for(i = 0;i < 10;i++)
 		elist[i] = NULL;	
 
@@ -32,6 +39,7 @@ int main(int argc,char** argv)
 	}
 
 
+	// Storing the commandline argument in the variable
 	filename = (char*)malloc(sizeof(char)*30);
 	strcpy(filename,argv[1]);
 	printf("Filename = %s \n",filename);
@@ -40,13 +48,10 @@ int main(int argc,char** argv)
 	// Parse the specification file
 	parse_specs(&tasks,filename);
 
-	printf("here \n");
 
 	// Printing the task specs
 	etmp = tasks.head;
-	
 	printf("Total time of execution = %d \n",tasks.total_time);
-
 	printf("All Tasks \n");
 	while(etmp !=  NULL)
         {
@@ -60,8 +65,10 @@ int main(int argc,char** argv)
                 etmp = etmp->next;
         }
 
+	// Regestering for the events
 	register_for_event(10,3,elist);
 	register_for_event(12,3,elist);
+
 
 	for(i = 0; i < 10;i++)
 	{
@@ -76,10 +83,20 @@ int main(int argc,char** argv)
 
 	}
 
+	// Setting up the mutexes and thread attributes
+	pthread_mutexattr_init(&lock_attrib);
+	pthread_mutexattr_setprotocol(&lock_attrib, PTHREAD_PRIO_INHERIT);
+
+	pthread_attr_init(&thread_attrib);
+	pthread_attr_setschedpolicy(&thread_attrib,SCHED_FIFO);
+	
+
+
+	// Starting the event handler
 	event_handler();
 
 
-	if(!filename)
+	if(filename)
 		free(filename);
 
 	return 0;
