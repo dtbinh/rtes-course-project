@@ -49,6 +49,7 @@ void parse_specs(struct task_list* task, char* filename)
 
 	// Extracting the num of tasks and total time of execution
 	sscanf(readline,"%d %d",&task_num,&task->total_time);
+	task->num_task = task_num;
 
 
 	// Reading task_num lines from the file to fill the data	
@@ -60,6 +61,7 @@ void parse_specs(struct task_list* task, char* filename)
 		ptask->start 	= NULL;
 		ptask->currpos	= NULL;
 		ptask->next	= NULL;
+		ptask->tid	= -1;
 
 		// Extracting the first token
 		data = strtok(readline," ");

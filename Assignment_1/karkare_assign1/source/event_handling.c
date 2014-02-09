@@ -15,6 +15,8 @@
 
 #define DIR_PATH	"/dev/input/by-path/"
 
+extern struct event_list*	elist[10];
+
 
 
 /*
@@ -144,7 +146,7 @@ void event_handler()
 }
 
 
-void register_for_event(pthread_t tid , int event, struct event_list** elist)
+void register_for_event(pthread_t tid , int event)
 {
 	struct event_list*	new;
 	struct event_list*	tmp;

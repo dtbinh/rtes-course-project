@@ -17,6 +17,7 @@ struct activities{
  *  period_event , priority and the activities to be done in the task.
  */
 struct task_struct_t{
+		pthread_t  tid;
 		int task_type;			// 'P' for periodice task and 'A' for Aperiodic task
 		int period_event;		// Period/Event of the task
 		int priority;			// RealTime priority of the task
@@ -32,6 +33,7 @@ struct task_struct_t{
  */
 struct task_list{
 		int total_time;			// total execution time of the program
+		int num_task;			// Number of tasks 
 		struct task_struct_t* head;	// Linklist to store all the tasks data
 	};
 
@@ -45,12 +47,12 @@ struct event_list {
 };
 
 
-void periodic_function(void*);
+void periodic_task(void*);
 void event_function(void*);
 
 void parse_specs(struct task_list* , char*);
 
 void event_handler();
-void register_for_event(pthread_t, int, struct event_list**);
+void register_for_event(pthread_t, int);
 
 #endif	/* structures.h */
