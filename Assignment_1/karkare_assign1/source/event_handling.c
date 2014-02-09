@@ -10,6 +10,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <signal.h>
+#include <pthread.h>
+
 #include "../include/structures.h"
 
 
@@ -30,7 +33,8 @@ void get_kbd_event_filename(char* filename)
 
 	int tmp;
 	int i = 0;
-	
+
+	// Opening the directory to search for the kbd devide file	
 	dir = opendir(DIR_PATH);
 	if(!dir)
 	{
@@ -57,9 +61,24 @@ void get_kbd_event_filename(char* filename)
 
 }
 
+/*
+ *  This function sends the SIGUSR1 signal to all the threads 
+ *  waiting on the event key_code
+ */
 void send_signal(int key_code)
 {
-	printf("Send the signal to the tasks \n");
+	struct event_list* 	tmp;
+	int event = (key_code - 1)%10;
+
+	tmp = elist[event];
+
+	while(tmp != NULL)
+	{
+		pthread_kill(tmp->tid,SIGUSR1);
+		tmp = tmp->next;
+
+	}
+
 
 }
 
@@ -90,7 +109,6 @@ void event_handler()
 	
 	// Getting the keyboard device file names
 	get_kbd_event_filename(kbd_filename);
-	printf("%s \n",kbd_filename);
 
 	// Extracting the individual filename from the return filename and opening them for reading
 	kbd_file = strtok_r(kbd_filename,":",&saveptr);
@@ -100,13 +118,17 @@ void event_handler()
 		strcat(kbd_fullpathname,kbd_file);
 		fd[i] = open(kbd_fullpathname,O_RDONLY);
 		if(fd[i] == -1){
-			printf("Error opening Keyboard device file \n");
-			printf("Error: %s \n",strerror(errno));
-			exit(1);
+			kbd_file = strtok_r(NULL,":",&saveptr);
+			continue;
 		}
 		FD_SET(fd[i],&set);
 		i++;
 		kbd_file = strtok_r(NULL,":",&saveptr);
+	}
+	if(i == 0){
+		printf("Error opening any Keyboard device file \n");
+		printf("Error: %s \n",strerror(errno));
+		exit(1);
 	}
 	
 	top = i-1;
@@ -146,6 +168,10 @@ void event_handler()
 }
 
 
+/*
+ *  This function is used by the event task to register themselves 
+ *  for receiving the signal when particular event happens
+ */
 void register_for_event(pthread_t tid , int event)
 {
 	struct event_list*	new;

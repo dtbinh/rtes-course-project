@@ -2,6 +2,7 @@
 #include <time.h>
 #include <pthread.h>
 #include <unistd.h>
+#include <signal.h>
 
 #include "../include/structures.h"
 
@@ -10,6 +11,11 @@ extern volatile int		condition_variable;
 extern pthread_barrier_t	activation;
 extern pthread_barrier_t	completion;
 
+
+/*
+ *  This function is used to find the difference between 2 timespec time 
+ *  This function assumes that time1 is always less than time2
+ */
 void timespec_diff(struct timespec* time1, struct timespec* time2,struct timespec* res)
 {
 	long tmp;
@@ -36,8 +42,14 @@ void timespec_diff(struct timespec* time1, struct timespec* time2,struct timespe
 
 }
 
+
+/*
+ *  This function is the periodic task and starts itself after 
+ *  period time.
+ */
 void periodic_task(void* data)
 {
+	// Variable Declarations
 	struct task_struct_t* task; 
 	struct timespec time1,time2,time3,rem,sleep_time;
 	
@@ -46,18 +58,17 @@ void periodic_task(void* data)
 	long int time_msec = 0;
 
 	task = (struct task_struct_t*)data;
-
 	
-	// Barrier Synchronization here
+	// Waiting here for activation
 	pthread_barrier_wait(&activation);
-	
 
+	// loop untill  condition_variable is changed by the main thread when it wakes up
 	while( condition_variable )
 	{
 		flag = 0;
-		clock_gettime(CLOCK_MONOTONIC ,&time1);	
+		clock_gettime(CLOCK_MONOTONIC ,&time1);	// Get the current time
 
-		// Doing the Job
+		// Task Body
 		task->currpos = task->start;
 		while(task->currpos != NULL)
 		{
@@ -72,7 +83,7 @@ void periodic_task(void* data)
 
 			task->currpos = task->currpos->next;
 		}
-
+	
 
 		// Checking for the overrun
 		clock_gettime(CLOCK_MONOTONIC,&time2);
@@ -94,30 +105,66 @@ void periodic_task(void* data)
 	}
 
 	pthread_barrier_wait(&completion);
-	printf("exit the thread \n");
 }
 
 
 
-
+/*
+ *  This function is event function which waits for the 
+ *  specific event to happen and then execute the task body
+ *  when it does
+ */
 void event_task(void* data)
 {
-	struct task_struct_t*  task;
+	// Variable declarations
+	struct task_struct_t*   task;
+	sigset_t		set;
 
+	int 			sig;
+	int			loop_var;
 
 	task = (struct task_struct_t*)data;
 
+
+	// Initializing and setting up the sigset
+	sigemptyset(&set);
+	sigaddset(&set,SIGUSR1);
+	pthread_sigmask(SIG_BLOCK,&set,NULL);
+
 	// Register the thread to receive the event signal
+	register_for_event(pthread_self(),task->period_event);
 
 	// Barrier synchronization here 
+	pthread_barrier_wait(&activation);
 
-	while(condition_variable)
+	do
 	{
-		
+		// Waiting for the event		
+		sigwait(&set,&sig);
+		if(!condition_variable)
+			break;
+
+		// Task body
+                task->currpos = task->start;
+                while(task->currpos != NULL)
+                {
+                        if(task->currpos->type == 'C')
+                                for(loop_var = 0;loop_var < task->currpos->work;loop_var++);
+                        else if(task->currpos->type == 'L'){
+                                pthread_mutex_lock(&mutexLock[task->currpos->work] );
+                        }
+                        else{
+                                pthread_mutex_unlock(&mutexLock[task->currpos->work]);
+                        }
+
+                        task->currpos = task->currpos->next;
+                }
 
 
+	}while(condition_variable);
+	
 
-
-	}
+	// waiting for the thread to exit 
+	pthread_barrier_wait(&completion);
 
 }

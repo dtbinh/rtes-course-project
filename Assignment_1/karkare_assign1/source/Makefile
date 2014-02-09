@@ -7,7 +7,7 @@ CC = gcc
 CFLAGS= -Wall -g
 
 # Linking flags
-LDFLAGS= -pthread
+LDFLAGS= -pthread -lrt -D_GNU_SOURCE
 
 # Executable name
 EXECNAME= main

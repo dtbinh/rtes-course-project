@@ -62,6 +62,7 @@ void parse_specs(struct task_list* task, char* filename)
 		ptask->currpos	= NULL;
 		ptask->next	= NULL;
 		ptask->tid	= -1;
+		ptask->thread_num = i+1;
 
 		// Extracting the first token
 		data = strtok(readline," ");
