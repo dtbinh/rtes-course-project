@@ -19,6 +19,9 @@
 #define DIR_PATH	"/dev/input/by-path/"
 
 extern struct event_list*	elist[10];
+extern pthread_barrier_t	activation;
+extern pthread_barrier_t	completion;
+extern volatile int		condition_variable;
 
 
 
@@ -50,7 +53,7 @@ void get_kbd_event_filename(char* filename)
 			if(i == 0)
 				strcpy(filename,dp->d_name);
 			else {
-				strcat(filename,":");
+				strcat(filename,"$");
 				strcat(filename,dp->d_name);
 			}
 			i++;
@@ -111,19 +114,19 @@ void event_handler()
 	get_kbd_event_filename(kbd_filename);
 
 	// Extracting the individual filename from the return filename and opening them for reading
-	kbd_file = strtok_r(kbd_filename,":",&saveptr);
+	kbd_file = strtok_r(kbd_filename,"$",&saveptr);
 	while(kbd_file)
 	{
 		strcpy(kbd_fullpathname,DIR_PATH);
 		strcat(kbd_fullpathname,kbd_file);
 		fd[i] = open(kbd_fullpathname,O_RDONLY);
 		if(fd[i] == -1){
-			kbd_file = strtok_r(NULL,":",&saveptr);
+			kbd_file = strtok_r(NULL,"$",&saveptr);
 			continue;
 		}
 		FD_SET(fd[i],&set);
 		i++;
-		kbd_file = strtok_r(NULL,":",&saveptr);
+		kbd_file = strtok_r(NULL,"$",&saveptr);
 	}
 	if(i == 0){
 		printf("Error opening any Keyboard device file \n");
@@ -133,8 +136,10 @@ void event_handler()
 	
 	top = i-1;
 
+	pthread_barrier_wait(&activation);
+
 	// Waiting for the read on all the keyboards 
-	while(1)
+	while(condition_variable)
 	{
 		select(fd[top] + 1,&set,NULL,NULL,NULL);	
 
@@ -148,13 +153,16 @@ void event_handler()
 		read(active_fd,&ev,sizeof(struct input_event));
 
 		if(ev.type == 1 && ev.value == 1){
-			if( ev.code >= 2 && ev.code  <= 11)
+			if( ev.code >= 2 && ev.code  <= 11){
 				send_signal(ev.code);
+			}
 			
 		}		
 	}
 
-	
+	pthread_barrier_wait(&completion);
+		
+
 	// Freeing the memory allocated
 	if(kbd_filename)
 		free(kbd_filename);
@@ -183,7 +191,6 @@ void register_for_event(pthread_t tid , int event)
 
 	if( elist[event] == NULL){
 		elist[event] = new;
-		printf("hrere \n");
 	}
 	else
 	{
@@ -192,7 +199,6 @@ void register_for_event(pthread_t tid , int event)
 			tmp = tmp->next;
 
 		tmp->next = new;
-		printf("lol \n");
 	}
 
 

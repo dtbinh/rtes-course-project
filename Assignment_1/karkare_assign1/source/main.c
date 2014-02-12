@@ -24,7 +24,6 @@ int main(int argc,char** argv)
 	char* filename;						// Stores the specification filename
 
 	struct task_struct_t*	etmp	= NULL;				
-	struct activities*	atmp 	= NULL;
 	struct event_list*	tmp;
 	struct task_list tasks;					// Main structure to store the task data
 
@@ -60,36 +59,19 @@ int main(int argc,char** argv)
 	// Storing the commandline argument in the variable
 	filename = (char*)malloc(sizeof(char)*30);
 	strcpy(filename,argv[1]);
-	printf("Filename = %s \n",filename);
 	
 
 	// Parse the specification file
 	parse_specs(&tasks,filename);
 
 
-	// Printing the task specs
-/*	etmp = tasks.head;
-	printf("Total time of execution = %d \n",tasks.total_time);
-	printf("All Tasks \n");
-	while(etmp !=  NULL)
-        {
-                printf("%c -- %d -- %d --- \t",etmp->task_type,etmp->period_event,etmp->priority);
-                atmp = etmp->start;
-                while(atmp != NULL){
-                        printf("%d-%d    ",atmp->type,atmp->work);
-                        atmp = atmp->next;
-                }
-                printf("\n");
-                etmp = etmp->next;
-        }
-*/
 
 	// Initializing the condition_variable used to 
 	condition_variable = 1;
 	
 	// Initializing the barriers
-	pthread_barrier_init(&activation,NULL,tasks.num_task+1);
-	pthread_barrier_init(&completion,NULL,tasks.num_task+1);
+	pthread_barrier_init(&activation,NULL,tasks.num_task+2);		// +2 for main and event handling task
+	pthread_barrier_init(&completion,NULL,tasks.num_task+2);
 
 
 	// Setting up the mutexes attribute and initializing the mutex
@@ -131,7 +113,6 @@ int main(int argc,char** argv)
 				printf("Error: %s \n",strerror(err));
 				exit(1);
 			}
-			printf("Thread id = %ld \n",(long int)etmp->tid);
 		}
 		else if(etmp->task_type == 'A'){
 			err  = pthread_create(&(etmp->tid),(const pthread_attr_t*)&thread_attr, (void *)event_task, (void*)etmp);
@@ -140,7 +121,6 @@ int main(int argc,char** argv)
                                 printf("Error: %s \n",strerror(err));
                                 exit(1);
                         }
-                        printf("Thread id = %ld \n",(long int)etmp->tid);
 		}
 
 		etmp = etmp->next;
@@ -149,11 +129,11 @@ int main(int argc,char** argv)
 
 	// Activating the tasks
 	pthread_barrier_wait(&activation);
+	printf("Task Activated \n");
 	
 	// Sleep the main thread for the total execution time
 	sleep_time.tv_sec = (tasks.total_time / 1000);
         sleep_time.tv_nsec = (tasks.total_time %1000) * 1000000;
-	printf("main thread sleep %d -- %ld \n",(int)sleep_time.tv_sec,sleep_time.tv_nsec);
 	nanosleep(&sleep_time,&time_rem);
 
 	// Letting tasks know that time is up
@@ -172,6 +152,7 @@ int main(int argc,char** argv)
 
 	// Wait for all the threads to finish the tasks
 	pthread_barrier_wait(&completion);
+	printf("Task Completed \n");
 
 
 	// Destroying the mutex
@@ -190,7 +171,6 @@ int main(int argc,char** argv)
 
 
 	// Freeing the allocated memory
-	
 	if(filename)
 		free(filename);
 
