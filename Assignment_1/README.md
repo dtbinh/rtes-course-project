@@ -1,4 +1,4 @@
-	RealTime Periodic and Aperiodic Task Simulation
+RealTime Periodic and Aperiodic Task Simulation
 ================================================================
 
 This directory contains 4 directories:
@@ -23,43 +23,44 @@ This directory contains 4 directories:
 			 e) Makefile	     --- This file is used to compile the project and generate the binary exeutable.
 
 
-	Compilation
+Compilation
 ==================================
 To compile the project go the source directory and execute this command:
 
-$bash:~  make main
+	$bash:~  make main
 This command will compile and generate the excutable in the ./bin folder with name main.
 
 
-	Execution
+Execution
 =================================
 To execute the project go the bin directory or use the fullpath :
 
 if in ./bin folder:
-$bash:~	 sudo ./main <input_filename>
+	$bash:~	 sudo ./main <input_filename>
 
 if in ./source folder:
-$bash:~  sudo ../bin/main <input_filename>
+	$bash:~  sudo ../bin/main <input_filename>
 
 <input_filename> should be the name of the input file containing the task specification.
 <input_filaneme> should be present in the ./test folder.
 <input_filaneme> should not contain the path since it is automatically added to it in the program.
 
 
-	Tracing 
+Tracing 
 =================================
 To execute the trace command:
 
-$bash:~ sudo trace-cmd record -e sched_switch ./main <input_filaname>
+	$bash:~ sudo trace-cmd record -e sched_switch ./main <input_filaname>
 
 This command will create the trace.dat file in the ./source directory.
 We can use kernelshare to view the trace.dat file in the GUI.
 
-	Cleaning
+
+Cleaning
 ================================
 To clean the project directory go to the ./source directory and execute this command:
 
-$bash:~ make clean
+	$bash:~ make clean
 
 
 
