@@ -26,6 +26,8 @@ int main(int argc,char** argv)
 		create_tcb_init(&curr_task_set.head,num_task);
 		tmp = curr_task_set.head;
 
+		curr_task_set.num_task = num_task;
+
 		// Read the assigned priority for the tasks
 		printf("%d \n",num_task);
 		for(i = 0; i < num_task ;i++){
@@ -44,6 +46,10 @@ int main(int argc,char** argv)
 			tmp->period = period;
 			tmp = tmp->next;
 		}
+
+		// Testing the priority assignment
+		rm_assign_priority(curr_task_set.head);
+
 
 		// printing the task set specification
 		tmp = curr_task_set.head;
