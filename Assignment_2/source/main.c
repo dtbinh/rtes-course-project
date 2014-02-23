@@ -48,7 +48,9 @@ int main(int argc,char** argv)
 		}
 
 		// Testing the priority assignment
-		rm_assign_priority(curr_task_set.head);
+		//rm_assign_priority(&curr_task_set.head);
+		rm_calculate_utilization(&curr_task_set);
+
 
 
 		// printing the task set specification
