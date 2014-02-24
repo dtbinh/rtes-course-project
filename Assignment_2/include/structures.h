@@ -24,11 +24,11 @@ struct task_set{
 //	float		fp_rt;
 };
 
+extern inline float min(float, float );
 
 void create_tcb_init(struct TCB_t** , int);
 void destroy_tcb_init(struct TCB_t** , int);
 
-float min(float,float);
 int  common_deadline_period_relation(struct TCB_t*); 	// 0 - if equal , 1 - if d < p and 2 - if d > p
 
 
@@ -37,6 +37,14 @@ void  rm_assign_priority(struct TCB_t*);
 void  rm_calculate_utilization(struct task_set*);
 void  rm_response_time(struct TCB_t*,int);
 float rm_util(int);
+
+
+// Earliest Deadline First (EDF) function declarations
+void edf_calculate_utilization(struct task_set*);
+void edf_loading_factor_analysis(struct TCB_t* );
+void edf_sort_and_remove_dup(float** );
+float edf_synch_busy_period(struct TCB_t*);
+
 
 
 #endif	/* structures.h */

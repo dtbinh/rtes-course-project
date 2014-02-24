@@ -13,6 +13,8 @@ int main(int argc,char** argv)
 	float 	deadline;
 	float 	period;
 
+	float lol;
+
 	struct task_set	curr_task_set;
 	struct TCB_t*	tmp;
 	
@@ -47,11 +49,11 @@ int main(int argc,char** argv)
 			tmp = tmp->next;
 		}
 
-		// Testing the priority assignment
-		//rm_assign_priority(&curr_task_set.head);
+		// rate monotonic analysis
 		rm_calculate_utilization(&curr_task_set);
-
-
+		
+		// EDF analysis
+		edf_calculate_utilization(&curr_task_set);
 
 		// printing the task set specification
 		tmp = curr_task_set.head;

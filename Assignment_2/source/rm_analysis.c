@@ -5,6 +5,12 @@
 
 #include "structures.h"
 
+
+inline float min(float num1, float num2){
+	return num1 < num2 ? num1: num2;
+}
+
+
 /* 
  *  This function calculates the sufficient condition upper bound 
  *  on a given number of tasks
@@ -156,14 +162,6 @@ int common_deadline_period_relation(struct TCB_t* head)
 
 }
 
-/*
- *  this function returns the min of the two argument
- */ 
-float min (float num1, float num2)
-{
-	return (num1 < num2 ? num1 : num2);
-}
-
 
 /*
  *  This functions does the response time analysis and
@@ -222,7 +220,7 @@ void rm_response_time(struct TCB_t* head, int period_deadline)
 		do{
 			if(j != 0)
 				rTime1 = rTime2;
-
+			rTime2 = 0.0;
 			tmp1 = head;
 			while(tmp1 != tmp){
 				rTime2 = rTime2 + (ceil(rTime1/tmp1->period)  *tmp1->wcet );
@@ -236,7 +234,8 @@ void rm_response_time(struct TCB_t* head, int period_deadline)
 			printf("Rate Monotonic: Task %d passes the response test. Response Time = %f deadline = %f\n",i,rTime2,tmp->deadline);
 		}
 		else{
-			printf("Rate Monotonic: Task %d failed the response test. Not Schedulable. Intermediate response time exceeded deadline = %f \n",i,tmp->deadline);
+			printf("Rate Monotonic: Task %d failed the response test. Intermediate response time  = %f ,  deadline = %f \n",i,rTime2,tmp->deadline);
+			printf("Rate Monotonic: Not Schedulable \n");
 			return;
 		}
 		
