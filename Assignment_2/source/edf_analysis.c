@@ -3,16 +3,17 @@
 #include <math.h>
 
 #include "structures.h"
-
+#include "config.h"
 
 /*
  *  This functions checks if the total utilization of the task
  *  is less than 1 or not and perform other operation based on the 
  *  utilization value.
  */
-void edf_calculate_utilization(struct task_set* tset)
+int  edf_analysis(struct task_set* tset)
 {
-	int  period_deadline = 0;
+	int res = 0;
+
 	float util = 0.0;
 
 	struct TCB_t* tmp;
@@ -24,20 +25,20 @@ void edf_calculate_utilization(struct task_set* tset)
 		tmp = tmp->next;
 	}
 
-	// Return 0 if deadline equals period else 1
-	period_deadline = common_deadline_period_relation(tset->head);
-
-
 	// If period equals deadline
-	if(period_deadline == 0){
+	if(tset->period_deadline == 0){
 		if(util > 1.0){
-			printf("EDF : Period = deadline . Task set is not schedulable since U = %f greater than 1 \n",util);
+		#if LOG_LVL != 0
+			printf("EDF : Task set is not schedulable since U = %f greater than 1 \n",util);
+		#endif
+			return 0;
 		}
 		else{
+		#if LOG_LVL != 0
 			printf("EDF : Task set is schedulable. U = %f \n",util);
+		#endif
+			return 1;
 		}
-
-		return;
 	}
 
 	
@@ -52,14 +53,21 @@ void edf_calculate_utilization(struct task_set* tset)
 
 	// If new utilization is less than 1 then set is schedulable
 	if(util <= 1.0){
-		printf("EDF: Period != Deadline. Task set is schedulable. eff. U = %f \n",util);
-		return;
+	#if LOG_LVL != 0
+		printf("EDF: Task set is schedulable. eff. U = %f \n",util);
+	#endif
+		return 1;
 	}
 
 	// If new utilization is greater than 1 then task set may or may not be schedulable
 	// Apply loading factor analysis
-	printf("EDF: Period != deadline and utilization = %f . Loading Factor Analysis req !! \n",util);
-	edf_loading_factor_analysis(tset->head);
+	#if LOG_LVL != 0
+	printf("EDF: Utilization = %f . Loading Factor Analysis req !! \n",util);
+	#endif
+
+	res = edf_loading_factor_analysis(tset->head);
+
+	return res;
 	
 }
 
@@ -72,7 +80,7 @@ void edf_calculate_utilization(struct task_set* tset)
  *  This function checks the laoding factor of the cpu and 
  *  decides if the given task set is schedulable or not
  */
-void edf_loading_factor_analysis(struct TCB_t* head)
+int  edf_loading_factor_analysis(struct TCB_t* head)
 {
 	int	i = 0;
 	int 	j = 0;
@@ -89,8 +97,10 @@ void edf_loading_factor_analysis(struct TCB_t* head)
 	// Calculating the busy period
 	L = edf_synch_busy_period(head);
 	if(isinf(L)){
+	#if LOG_LVL != 0
 		printf("EDF: Task set not schedulable. Busy Period infinity. \n");
-		return;
+	#endif
+		return 0;
 	}
 
 	// Calculating the testing points from 0 to L time
@@ -152,12 +162,18 @@ void edf_loading_factor_analysis(struct TCB_t* head)
 
 		// If loading Factor is greater than 1 for any instance then tasks are not schedulabel
 		if(loadFactor > 1){
+		#if LOG_LVL != 0
 			printf("EDF: Task set not Schedulable. Failed Loading factor test \n");
-			return;
+		#endif
+			return 0;
 		}
 	}
 
+	#if LOG_LVL != 0
 	printf("EDF: Task set schedulable. All task passed loading factor test \n");
+	#endif
+
+	return 1;
 
 }
 
@@ -196,24 +212,6 @@ float edf_synch_busy_period(struct TCB_t* head)
                 i++;
 	}while(busyPeriod2 != busyPeriod1);
 
-	if(isinf(busyPeriod2))
-		printf("Not Schedulable\n");
-	
 	return busyPeriod2;
-
-}
-
-
-
-
-/*
- *  This function sorts and remove the duplicates from the 
- *  testing points array provided to it as argument
- */
-void edf_sort_and_remove_dup(float** arr)
-{
-	
-
-
 
 }

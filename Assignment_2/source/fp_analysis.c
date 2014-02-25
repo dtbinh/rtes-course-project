@@ -2,14 +2,16 @@
 #include <stdlib.h>
 
 #include "structures.h"
+#include "config.h"
 
 
 /*
  *  This function does the fixed priority analysis on the given task set.
  */
-void fixed_priority_analysis(struct task_set* tset)
+int fixed_priority_analysis(struct task_set* tset)
 {
-	int res;
+	int 	res;
+
 	float util = 0.0;
 	struct TCB_t* tmp;
 
@@ -21,8 +23,10 @@ void fixed_priority_analysis(struct task_set* tset)
 	}
 
 	if(util > 1.0){
+	#if LOG_LVL != 0
 		printf("Fixed Priority : Task set not schedulable. U = %f > 1 \n",util);
-		return;
+	#endif
+		return 0;
 	}
 
 	// sorting the task based on their assigned priority
@@ -33,9 +37,11 @@ void fixed_priority_analysis(struct task_set* tset)
 
 	// If utilization bount test failed then we do response time analysis
 	if(res == 0){
-		rm_response_time(tset->head,"Fixed Priority");
+		res = rm_response_time(tset->head,"Fixed Priority");
 	}
 
+	return res;
+	
 }
 
 
@@ -134,14 +140,19 @@ int fp_utilization_bound_test(struct TCB_t* head,char* aType)
 		count++;
 
 		if(util > rm_util(count)){
+		#if LOG_LVL != 0
 			printf("%s : Task %d failed the utilization bount test. U = %f > %f (U(%d)) \n",aType,taskCount,util,rm_util(count),count);
 			printf("%s : Need to apply Response Time analysis \n",aType);
+		#endif
 			return 0;
 		}
 		tmp1 = tmp1->next;
 	}
 
+	#if LOG_LVL != 0
 	printf("%s : Task set passed Utilization bound test. Task set schedulable. \n",aType);
+	#endif
+
 	return 1;
 }
 

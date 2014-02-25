@@ -1,9 +1,11 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "structures.h"
+#include "config.h"
 
 
 inline float min(float num1, float num2){
@@ -124,54 +126,61 @@ void rm_assign_priority(struct TCB_t* head)
  *  checks if it satisfies the sufficent condition else calls 
  *  response time analysis to see if the tasks are schedulable.
  */
-void rm_calculate_utilization(struct task_set* tset)
+int  rm_analysis(struct task_set* tset)
 {
-	int 	period_deadline = 0;		// if 0 - equal , 1 - period > deadline
+	int 	res = 1;
+	
 	float 	util = 0.0;	
 
 
-	struct TCB_t* tmp;
 
 	// Assign the priority to the task based on their period
 	rm_assign_priority(tset->head);
 
-	// Find the deadline period relation
-	period_deadline = common_deadline_period_relation(tset->head);
- 	
 
 	// Calculate utilization
 	util = calculate_utilization(tset->head,0);
 
 	// If utilization greater than 1 then not schedulable
 	if(util > 1.0){
+	#if LOG_LVL != 0
 		printf("Rate Monotonic: Task set not schedulable : U = %f greater than 1\n",util);
-		return;
+	#endif
+		return 0;
 	}
 	
 
 	// If utilization satisfies the nessary condition 
 	// then we are done and the tasks are schedulable
-	if(period_deadline == 0){
-		printf("Rate Monotonic : Task have deadline equals period \n");
-		if(util <= rm_util(tset->num_task))
+	if(tset->period_deadline == 0){
+		if(util <= rm_util(tset->num_task)){
+		#if LOG_LVL != 0
 			printf("Rate Monotonic : Schedulable  U = %f \n",util);
+		#endif
+		}
 		else{
+		#if LOG_LVL != 0
 			printf("Rate Monotonic : U = %f > %f (U(%d))  : RT Analysis required \n",util,rm_util(tset->num_task),tset->num_task);
-			rm_response_time(tset->head,"Rate Monotonic");
+		#endif
+			res = rm_response_time(tset->head,"Rate Monotonic");
 		}
 	}
 	else{
-		printf("Rate Monotonic : Task have deadline not equal period \n");
-
 		util = calculate_utilization(tset->head,1);
 		if(util <= rm_util(tset->num_task)){
+		#if LOG_LVL != 0
 			printf("Rate Monotonic : new utilization = %f < %f (U(%d)) : Task set schedulable \n",util,rm_util(tset->num_task),tset->num_task);
+		#endif
 		}
 		else{
+		#if LOG_LVL != 0
 			printf("Rate Monotonic :  U = %f : RT Analysis required \n",util);
-			rm_response_time(tset->head,"Rate Monotonic");
+		#endif
+			res = rm_response_time(tset->head,"Rate Monotonic");
 		}
 	}
+
+	return res;
 
 }
 
@@ -203,10 +212,10 @@ int common_deadline_period_relation(struct TCB_t* head)
  *  This functions does the response time analysis and
  *  determines if the given tasks are schedulable or not
  */ 
-void rm_response_time(struct TCB_t* head, char* aType)
+int  rm_response_time(struct TCB_t* head, char* aType)
 {
 	int i = 1;
-	int j = 0;
+	float swap_tmp;
 	float tmp_util= 0.0;
 	float rTime1 = 0.0;
 	float rTime2 = 0.0;
@@ -218,10 +227,13 @@ void rm_response_time(struct TCB_t* head, char* aType)
 	tmp = head;
 
 	// finding the first task in priority order which fails the utilization bound test
+	if(strcmp(aType,"Fixed Priority") != 0){
 	while(tmp != NULL){
 		tmp_util = tmp_util + (tmp->wcet/min(tmp->period,tmp->deadline));
 		if(tmp_util > rm_util(i)){
+		#if LOG_LVL != 0
 			printf("%s : Utilization of first %d task = %f > %f (U(%d)). Not OK. RT analyisis for task %d onward needed. \n",aType,i,tmp_util,rm_util(i),i,i);
+		#endif
 			break;
 		}
 		tmp = tmp->next;
@@ -229,14 +241,17 @@ void rm_response_time(struct TCB_t* head, char* aType)
 	}
 
 	if(tmp == NULL){
+	#if LOG_LVL != 0
 		printf("%s : UB Analysis : All task meet their utilization bound. Schedulable \n",aType);
-		return;
+	#endif
+		return 1;
+	}
+
 	}
 
 	// Doing RT analysis on the task from i onwards
-	while(tmp != NULL){
-
-		j = 0;
+	while(tmp != NULL)
+	{
 		rTime1 = 0.0;
 		rTime2 = 0.0;
 		// find inital guess
@@ -246,12 +261,11 @@ void rm_response_time(struct TCB_t* head, char* aType)
 			tmp1= tmp1->next;
 		}
 		rTime1 = rTime1 + tmp->wcet;
-		
+			
 
 		// Iterate till you have same value in rTime1 and rTime2
-		do{
-			if(j != 0)
-				rTime1 = rTime2;
+		while(rTime2 != rTime1 && rTime1 <= tmp->deadline)
+		{
 			rTime2 = 0.0;
 			tmp1 = head;
 			while(tmp1 != tmp){
@@ -259,13 +273,19 @@ void rm_response_time(struct TCB_t* head, char* aType)
 				tmp1 = tmp1->next;
 			}
 			rTime2 = rTime2 + tmp->wcet;
-			j++;
-		}while(rTime2 != rTime1 && rTime2 <= tmp->deadline);
+
+			//swap rTime1 and rTime2
+			swap_tmp = rTime1;
+			rTime1 = rTime2;
+			rTime2 = swap_tmp;
+		}
 
 		if(rTime2 != rTime1){
-			printf("%s : Task %d failed the response test. Intermediate response time  = %f ,  deadline = %f \n",aType,i,rTime2,tmp->deadline);
+		#if LOG_LVL != 0
+			printf("%s : Task %d failed the response test. Intermediate response time  = %f ,  deadline = %f \n",aType,i,rTime1,tmp->deadline);
 			printf("%s : Not Schedulable \n",aType);
-			return;
+		#endif
+			return 0;
 		}
 		
 		tmp = tmp->next;
@@ -273,7 +293,11 @@ void rm_response_time(struct TCB_t* head, char* aType)
 
 	}
 
+	#if LOG_LVL != 0
 	printf("%s : Task set is schedulable \n",aType);
+	#endif
+
+	return 1;
 
 
 } 

@@ -4,6 +4,7 @@
 #include <unistd.h>
 
 #include "structures.h"
+#include "config.h"
 
 
 /*
@@ -77,9 +78,10 @@ void dm_assign_priority(struct TCB_t* head)
  *  checks if it satisfies the sufficent condition else calls 
  *  response time analysis to see if the tasks are schedulable.
  */
-void dm_calculate_utilization(struct task_set* tset)
+int  dm_analysis(struct task_set* tset)
 {
-	int 	period_deadline = 0;		// if 0 - equal , 1 - period > deadline
+	int	res = 1;
+
 	float 	util = 0.0;	
 
 
@@ -88,9 +90,6 @@ void dm_calculate_utilization(struct task_set* tset)
 	// Assign the priority to the task based on their period
 	dm_assign_priority(tset->head);
 
-	// Find the deadline period relation
-	period_deadline = common_deadline_period_relation(tset->head);
- 	
 
 	// Calculate utilization
 	tmp = tset->head;
@@ -102,23 +101,28 @@ void dm_calculate_utilization(struct task_set* tset)
 
 	// If utilization greater than 1 then not schedulable
 	if(util > 1.0){
+	#if LOG_LVL != 0
 		printf("Deadline Monotonic: Task set not schedulable : U = %f greater than 1\n",util);
-		return;
+	#endif
+		return 0;
 	}
 	
 
 	// if deadline equals period then deadline monotonic is same as rate monotonic 
-	if(period_deadline == 0){
-		printf("Deadline  Monotonic : Task have deadline equals period \n");
-		if(util <= rm_util(tset->num_task))
+	if(tset->period_deadline == 0){
+		if(util <= rm_util(tset->num_task)){
+		#if LOG_LVL != 0
 			printf("Deadline Monotonic : Schedulable :  U = %f < %f (U(%d)) \n",util,rm_util(tset->num_task),tset->num_task);
+		#endif
+		}
 		else{
+		#if LOG_LVL != 0
 			printf("Deadline Monotonic : U = %f > %f (U(%d))  : RT Analysis required \n",util,rm_util(tset->num_task),tset->num_task);
-			rm_response_time(tset->head,"Deadline Monotonic");
+		#endif
+			res = rm_response_time(tset->head,"Deadline Monotonic");
 		}
 	} // If deadline not equals period then we need to do Response Time analysis 
 	else{
-		printf("Deadline Monotonic : Task have deadline not equal period \n");
 		// Calculating new utilization
 		tmp = tset->head;
 		util = 0.0;
@@ -127,12 +131,17 @@ void dm_calculate_utilization(struct task_set* tset)
 			tmp = tmp->next;
 		}
 		if(util <= rm_util(tset->num_task)){
+		#if LOG_LVL != 0
 			printf("Deadline Monotonic : new utilization = %f < %f (U(%d)) : Task set schedulable \n",util,rm_util(tset->num_task),tset->num_task);
+		#endif
 		}
 		else{
+		#if LOG_LVL != 0
 			printf("Deadline Monotonic :  U = %f : RT Analysis required \n",util);
-			rm_response_time(tset->head,"Deadline Monotonic");
+		#endif
+			res = rm_response_time(tset->head,"Deadline Monotonic");
 		}
 	}
 
+	return res;
 }
