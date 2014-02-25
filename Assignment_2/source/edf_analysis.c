@@ -12,7 +12,6 @@
  */
 void edf_calculate_utilization(struct task_set* tset)
 {
-	int  i;
 	int  period_deadline = 0;
 	float util = 0.0;
 
@@ -21,29 +20,44 @@ void edf_calculate_utilization(struct task_set* tset)
 	// calculating the utilization
 	tmp = tset->head;
 	while(tmp != NULL){
-		util = util + (tmp->wcet / min(tmp->deadline,tmp->period));
+		util = util + (tmp->wcet /tmp->period);
 		tmp = tmp->next;
 	}
 
-	// If utilization is less than 1 then task set is schedulable
-	if(util <= 1.0){
-		printf("EDF : Task set is schedulable. U = %f \n",util);
-		return;
-	}
-	
-	// If utilizationis greater than 1 then task set may or may not be schedulable
-	// depending on if the deadline equals period or not 
-
-	// We check if period equals deadline or not
+	// Return 0 if deadline equals period else 1
 	period_deadline = common_deadline_period_relation(tset->head);
 
-	// If period equals deadline , task set not schedulable
+
+	// If period equals deadline
 	if(period_deadline == 0){
-		printf("EDF : Period = deadline . Task set is not schedulable since U = %f greater than 1 \n",util);
+		if(util > 1.0){
+			printf("EDF : Period = deadline . Task set is not schedulable since U = %f greater than 1 \n",util);
+		}
+		else{
+			printf("EDF : Task set is schedulable. U = %f \n",util);
+		}
+
 		return;
 	}
+
 	
-	// If deadline is less than period , apply loading factor analysis
+	// calculating the new utilization
+	tmp = tset->head;
+	util = 0.0;
+	while(tmp != NULL){
+		util = util + (tmp->wcet /min(tmp->deadline,tmp->period));
+		tmp = tmp->next;
+	}
+
+
+	// If new utilization is less than 1 then set is schedulable
+	if(util <= 1.0){
+		printf("EDF: Period != Deadline. Task set is schedulable. eff. U = %f \n",util);
+		return;
+	}
+
+	// If new utilization is greater than 1 then task set may or may not be schedulable
+	// Apply loading factor analysis
 	printf("EDF: Period != deadline and utilization = %f . Loading Factor Analysis req !! \n",util);
 	edf_loading_factor_analysis(tset->head);
 	

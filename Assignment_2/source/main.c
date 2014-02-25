@@ -5,6 +5,7 @@
 
 int main(int argc,char** argv)
 {
+	int	numTaskSet = 0;
 	int	i = 0;
 	int 	num_task = 0;
 	int	priority;
@@ -12,8 +13,6 @@ int main(int argc,char** argv)
 	float 	wcet;
 	float 	deadline;
 	float 	period;
-
-	float lol;
 
 	struct task_set	curr_task_set;
 	struct TCB_t*	tmp;
@@ -25,13 +24,14 @@ int main(int argc,char** argv)
 	scanf("%d",&num_task);
 	while(num_task)			// If the number of task is zero , exit the program
 	{
+		numTaskSet++;
+		printf("Task set %d analysis \n",numTaskSet);
 		create_tcb_init(&curr_task_set.head,num_task);
 		tmp = curr_task_set.head;
 
 		curr_task_set.num_task = num_task;
 
 		// Read the assigned priority for the tasks
-		printf("%d \n",num_task);
 		for(i = 0; i < num_task ;i++){
 			scanf("%d",&priority);
 			tmp->assignPriority = priority;
@@ -49,28 +49,31 @@ int main(int argc,char** argv)
 			tmp = tmp->next;
 		}
 
+		// check if the utilization is less than 1 only then the scheduling matters
+
 		// rate monotonic analysis
 		rm_calculate_utilization(&curr_task_set);
+
+		// Deadline Monotonic analysis
+		dm_calculate_utilization(&curr_task_set);
+
+		// Fixed priority analysis
+		fixed_priority_analysis(&curr_task_set);
 		
 		// EDF analysis
 		edf_calculate_utilization(&curr_task_set);
-
-		// printing the task set specification
-		tmp = curr_task_set.head;
-		while(tmp != NULL)
-		{
-			printf("%d %d %f %f %f \n",tmp->assignPriority,tmp->currPriority,tmp->wcet,tmp->deadline,tmp->period);
-			tmp = tmp->next;
-		}
-
+	
+	
 		// do the analysis on the given task set
-
-			
+					
 		// Get the next task set,  number of tasks value
 		scanf("%d",&num_task);
-		
+			
 		destroy_tcb_init(&curr_task_set.head,num_task);
+
+		printf("\n\n");
 		sleep(1);
+		
 	}
 	
 

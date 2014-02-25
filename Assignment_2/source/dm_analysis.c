@@ -5,23 +5,9 @@
 
 #include "structures.h"
 
-/* 
- *  This function calculates the sufficient condition upper bound 
- *  on a given number of tasks
- */
-float dm_util(int num)
-{
-	float util = 0.0;
-	float p	 = 1.0/num;	
-	
-	util = num * ( (powf(2,p))  - 1.0) ;
-
-	return util;
-}
-
 
 /*
- *  This function assigns the priority to the task based on their period
+ *  This function assigns the priority to the task based on their deadline
  *  and sort them in ascending order
  */	
 void dm_assign_priority(struct TCB_t* head)
@@ -100,7 +86,7 @@ void dm_calculate_utilization(struct task_set* tset)
 	struct TCB_t* tmp;
 
 	// Assign the priority to the task based on their period
-	rm_assign_priority(tset->head);
+	dm_assign_priority(tset->head);
 
 	// Find the deadline period relation
 	period_deadline = common_deadline_period_relation(tset->head);
@@ -114,130 +100,39 @@ void dm_calculate_utilization(struct task_set* tset)
 		tmp = tmp->next;
 	}
 
-	// If utilization satisfies the nessary condition 
-	// then we are done and the tasks are schedulable
-	if(period_deadline == 0){
-		printf("Task have deadline equals period \n");
-		if(util < rm_util(tset->num_task))
-			printf("Deadline Monotonic : Schedulable  U = %f \n",util);
-		else{
-			printf("Deadline Monotonic : U = %f > %f  : RT Analysis required \n",util,rm_util(tset->num_task));
-			rm_response_time(tset->head,period_deadline);
-		}
+	// If utilization greater than 1 then not schedulable
+	if(util > 1.0){
+		printf("Deadline Monotonic: Task set not schedulable : U = %f greater than 1\n",util);
+		return;
 	}
-	else{
-		printf("Tasks have deadline not equals period \n");
-		printf("Deadline Monotonic :  U = %f : RT Analysis required \n",util);
-		rm_response_time(tset->head,period_deadline);
-	}
-
-}
-
-
-/*
- *  This function checks whether deadline is equals period or less 
- */ 
-int common_deadline_period_relation(struct TCB_t* head)
-{
-	int result = 0;
-	struct TCB_t* tmp;
-
-	tmp = head;
-
-	while(tmp != NULL){
-		if(tmp->deadline < tmp->period)
-			result = 1;
-		tmp = tmp->next;
-	}
-
-
-	return result;
-
-
-}
-
-
-/*
- *  This functions does the response time analysis and
- *  determines if the given tasks are schedulable or not
- */ 
-void dm_response_time(struct TCB_t* head, int period_deadline)
-{
-	int i = 1;
-	int j = 0;
-	float tmp_util= 0.0;
-	float rTime1 = 0.0;
-	float rTime2 = 0.0;
-
-	struct TCB_t* tmp;	
-	struct TCB_t* tmp1;
 	
 
-	tmp = head;
-
+	// if deadline equals period then deadline monotonic is same as rate monotonic 
 	if(period_deadline == 0){
-		// finding the first task in priority order which fails the utilization bound test
+		printf("Deadline  Monotonic : Task have deadline equals period \n");
+		if(util <= rm_util(tset->num_task))
+			printf("Deadline Monotonic : Schedulable :  U = %f < %f (U(%d)) \n",util,rm_util(tset->num_task),tset->num_task);
+		else{
+			printf("Deadline Monotonic : U = %f > %f (U(%d))  : RT Analysis required \n",util,rm_util(tset->num_task),tset->num_task);
+			rm_response_time(tset->head,"Deadline Monotonic");
+		}
+	} // If deadline not equals period then we need to do Response Time analysis 
+	else{
+		printf("Deadline Monotonic : Task have deadline not equal period \n");
+		// Calculating new utilization
+		tmp = tset->head;
+		util = 0.0;
 		while(tmp != NULL){
-			tmp_util = tmp_util + (tmp->wcet/min(tmp->period,tmp->deadline));
-			if(tmp_util > rm_util(i)){
-				printf("Deadline Monotonic : Utilization of first %d task = %f. \
-					Not OK. RT analyisis for task %d onward needed. \n",i,tmp_util,i);
-				break;
-			}
-			printf("Deadline Monotonic: Utilization of first %d task  = %f . Its OK. \n",i,tmp_util);
+			util = util + (tmp->wcet / min(tmp->deadline,tmp->period));
 			tmp = tmp->next;
-			i++;
 		}
-
-		if(tmp == NULL){
-			printf("Deadline Monotonic: All task meet their deadline. Schedulable \n");
-			return;
-		}
-	}
-
-	// Doing RT analysis on the task from i onwards
-	while(tmp != NULL){
-
-		j = 0;
-		rTime1 = 0.0;
-		rTime2 = 0.0;
-		// find inital guess
-		tmp1 = head;
-		while(tmp1 != tmp){
-			rTime1 = rTime1 + tmp1->wcet;	
-			tmp1= tmp1->next;
-		}
-		rTime1 = rTime1 + tmp->wcet;
-		
-
-		// Iterate till you have same value in rTime1 and rTime2
-		do{
-			if(j != 0)
-				rTime1 = rTime2;
-
-			tmp1 = head;
-			while(tmp1 != tmp){
-				rTime2 = rTime2 + (ceil(rTime1/tmp1->period)  *tmp1->wcet );
-				tmp1 = tmp1->next;
-			}
-			rTime2 = rTime2 + tmp->wcet;
-			j++;
-		}while(rTime2 != rTime1 && rTime2 <= tmp->deadline);
-
-		if(rTime2 == rTime1){
-			printf("Deadline Monotonic: Task %d passes the response test. Response Time = %f deadline = %f\n",i,rTime2,tmp->deadline);
+		if(util <= rm_util(tset->num_task)){
+			printf("Deadline Monotonic : new utilization = %f < %f (U(%d)) : Task set schedulable \n",util,rm_util(tset->num_task),tset->num_task);
 		}
 		else{
-			printf("Deadline Monotonic: Task %d failed the response test. Not Schedulable. Intermediate response time exceeded deadline = %f \n",i,tmp->deadline);
-			return;
+			printf("Deadline Monotonic :  U = %f : RT Analysis required \n",util);
+			rm_response_time(tset->head,"Deadline Monotonic");
 		}
-		
-		tmp = tmp->next;
-		i++;
-
 	}
 
-	printf("Task set is Deadline Monotonic Schedulable \n");
-
-
-} 
+}
