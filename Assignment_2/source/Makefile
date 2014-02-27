@@ -27,6 +27,7 @@ OBJECTS = $(INPUT_PATH)tcb_functions.o \
 	$(INPUT_PATH)edf_analysis.o \
 	$(INPUT_PATH)dm_analysis.o   \
 	$(INPUT_PATH)fp_analysis.o \
+	$(INPUT_PATH)schedulability_analysis.o \
 		  
 		  
 # Compilation of the Main Code
@@ -60,6 +61,11 @@ $(INPUT_PATH)dm_analysis.o : $(patsubst %.o, %.c, $@) $(INPUT_PATH)../include/st
 # Object File for fixed priority function file
 $(INPUT_PATH)fp_analysis.o : $(patsubst %.o, %.c, $@) $(INPUT_PATH)../include/structures.h
 	$(CC) -c $(patsubst %.o, %.c, $@) -o $@ $(CFLAGS) $(LDFLAGS)	
+
+# Object File for schedulability analysis function file
+$(INPUT_PATH)schedulability_analysis.o : $(patsubst %.o, %.c, $@) $(INPUT_PATH)../include/structures.h
+	$(CC) -c $(patsubst %.o, %.c, $@) -o $@ $(CFLAGS) $(LDFLAGS)	
+
 
 .PHONY : clean
 clean :

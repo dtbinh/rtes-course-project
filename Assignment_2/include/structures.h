@@ -3,6 +3,9 @@
 
 
 struct TCB_t{
+	#if MODE == 0
+	double 		util;
+	#endif
 	int   		assignPriority;
 	int   		currPriority;
 	float 		wcet;
@@ -47,6 +50,15 @@ int   fixed_priority_analysis(struct task_set*);
 int   edf_analysis(struct task_set*);
 int   edf_loading_factor_analysis(struct TCB_t* );
 float edf_synch_busy_period(struct TCB_t*);
+
+#if MODE == 0
+// Schedulbility analysis function declarations
+void genTaskDeadline(int,struct TCB_t*, int);
+void genTaskPeriod(int,struct TCB_t*);
+void uUniFast(int,double,struct TCB_t* );
+void schedulability_analysis(struct task_set*);
+#endif
+
 
 
 

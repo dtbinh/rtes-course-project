@@ -1,11 +1,14 @@
 #include <stdio.h>
 #include <unistd.h>
+#include <time.h>
+#include <stdlib.h>
 
 #include "structures.h"
 #include "config.h"
 
 int main(int argc,char** argv)
 {
+	#if MODE == 1
 	int	numTaskSet = 0;
 	int	i = 0;
 	int 	num_task = 0;
@@ -20,12 +23,13 @@ int main(int argc,char** argv)
 	float 	deadline;
 	float 	period;
 
+	struct TCB_t* 	tmp;
+	#endif
+
 	struct task_set	curr_task_set;
-	struct TCB_t*	tmp;
-	
 	curr_task_set.head = NULL;
 
-
+	#if MODE == 1
 	// Scanf for number of tasks in the set
 	scanf("%d",&num_task);
 	while(num_task)			// If the number of task is zero , exit the program
@@ -94,7 +98,13 @@ int main(int argc,char** argv)
 		sleep(1);
 		
 	}
-	
+	#else
+		srand48(time(NULL));
+		srand(time(NULL));
+		printf("Wait for the analysis to be done !!\n");
+		schedulability_analysis(&curr_task_set);
+		printf("Analysis done , output in the ../test folder !! \n");
+	#endif
 
 	return 0;
 }
