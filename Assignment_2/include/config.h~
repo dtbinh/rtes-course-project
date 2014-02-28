@@ -8,7 +8,7 @@
  *  1   ----- 	 minimal log is printed which is essential for MODE 1 (defined below)
  *  2   -----    This level prints each and every step in the execution ( used just for DEBUG MODE)
  */
-#define  LOG_LVL	1
+#define  LOG_LVL	0
 
 
 /*
@@ -23,7 +23,7 @@
  *		  are schedulable or not. It prints the progress of the scheduling algos on the screen.
  *		  (NOTE: use LOG_LVL  1  to have best result. use of LOG_LVL not advised except for you need to debug the code)
  */
-#define	 MODE		1
+#define	 MODE		0
 
 
 
