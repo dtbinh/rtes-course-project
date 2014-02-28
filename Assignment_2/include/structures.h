@@ -57,6 +57,7 @@ void genTaskDeadline(int,struct TCB_t*, int);
 void genTaskPeriod(int,struct TCB_t*);
 void uUniFast(int,double,struct TCB_t* );
 void schedulability_analysis(struct task_set*);
+void create_filename(char**,int,int);
 #endif
 
 

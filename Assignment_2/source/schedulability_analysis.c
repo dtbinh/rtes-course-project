@@ -9,6 +9,38 @@
 
 #if MODE == 0
 
+#define NUM_TASKSET	10000
+
+
+/*
+ *  This function creates the filename based on the 
+ *  argument provided. output_<taskset_size>_<deadline_policy>.txt
+ */
+void create_filename(char** filename,int taskset_size,int deadline_policy)
+{
+	char* pathname = "../test/output_";
+	char* dp = (char*)malloc(sizeof(char)*10);
+	char* end_filename = (char*)malloc(sizeof(char)*20);
+
+	strcpy(*filename,pathname);
+
+	if(deadline_policy == 0)
+		strcpy(dp,"full");
+	else
+		strcpy(dp,"half");
+
+	sprintf(end_filename, "%d_%s.txt",taskset_size,dp);
+	
+	strcat(*filename,end_filename);
+
+	if(end_filename)
+		free(end_filename);
+	if(dp)
+		free(dp);
+
+}
+
+
 
 /*
  *  This function implements uunitfast algorithm to 
@@ -55,12 +87,12 @@ void genTaskPeriod(int n,struct TCB_t* head)
 	int range_end[] = {1000,10000};
 	struct TCB_t* tmp;
 
-	task_per_range = n/5;
+	task_per_range = n/2;
 
 
 	tmp = head;
 	for(i = 0;i < n;i++){
-		range = n/task_per_range;
+		range = i/task_per_range;
 		period = (rand()%(range_end[range] - range_start[range])) + range_start[range];
 		tmp->period = (float)period;
 		tmp->wcet   = tmp->period * tmp->util;
@@ -108,43 +140,91 @@ void genTaskDeadline(int n, struct TCB_t* head, int type)
  */
 void schedulability_analysis(struct task_set* tset)
 {
+
 	int	taskset_size[] = {10,20,50};
 	int	test_passed[] = {0,0,0};
 	int	curr_taskset_num;
 	int	curr_deadline_policy;
-
 	int 	i,j,k,l;
+
+	long long int tests = 0;
 	
-	char*   filepath = "../test/";
+	float	curr_util;
+	float	percent[3] = {0.0,0.0,0.0};
+	float 	util_range[] = {0.05,0.15,0.25,0.35,0.45,0.55,0.65,0.75,0.85,0.95};
+
 	char*   filename;
-	
+
+	FILE*	fp;	
+
+	filename = (char*)malloc(sizeof(char)*100);
 
 
-	struct 	TCB_t* tmp;
-
+	// Starting the schedulability analysis
 	for(i = 0; i < 3; i++){					// For taskset size
 		curr_taskset_num = taskset_size[i];
+
 		for(j = 0; j < 2; j++){				// For Deadline policy
 			curr_deadline_policy = j;
 
+			// Create the filename
+			create_filename(&filename,curr_taskset_num,curr_deadline_policy);
+			printf("File name = %s\n",filename);
+
+			// Open the file to record the data
+			fp = fopen(filename,"w");
+			if(fp == NULL){
+				printf("Error creating the data file ! Abort execution !! \n");
+				exit(1);
+			}	
+					
+			for(k = 0 ; k < 10 ;k++){		// For utilization
+				curr_util = util_range[k];
+				test_passed[0] = 0;test_passed[1] = 0;test_passed[2] = 0;
+				percent[0] = 0.0;percent[1] = 0.0;percent[2] = 0.0;
+
+				for(l = 0; l < NUM_TASKSET;l++){	// For averaging over NUM_TASKSET test	
+
+					//Creating the taskset
+					create_tcb_init(&tset->head,curr_taskset_num);
+					tset->num_task = curr_taskset_num;
+					uUniFast(curr_taskset_num,(double)curr_util,tset->head);
+					genTaskPeriod(curr_taskset_num,tset->head);
+					genTaskDeadline(curr_taskset_num,tset->head,curr_deadline_policy);
+
+					// checking the deadline period relationship
+					tset->period_deadline = common_deadline_period_relation(tset->head);
+
+					// Analysing the taskset with EDF , RM and DM
+					test_passed[0] += edf_analysis(tset);
+					test_passed[1] += rm_analysis(tset);
+					test_passed[2] += dm_analysis(tset);			
+				
+
+					tests++;	
+				}
+				
+			
+				// Calculate the percentage of task passed the test and store it 
+				percent[0] =  ((float)test_passed[0] / (float)NUM_TASKSET) * 100.0;
+				percent[1] =  ((float)test_passed[1] / (float)NUM_TASKSET) * 100.0;
+				percent[2] =  ((float)test_passed[2] / (float)NUM_TASKSET) * 100.0;
+
+				fprintf(fp,"%f %f %f\n",percent[0],percent[1],percent[2]);
+
+			}
+			// Close the file 
+			fclose(fp);
 		}
+		// Delete the task head
+		destroy_tcb_init(&tset->head,curr_taskset_num);
 
 	}
 
-	create_tcb_init(&tset->head,10);	
-	tset->num_task = 10;
-	
-	uUniFast(10,0.5,tset->head);
-	genTaskPeriod(10,tset->head);
-	genTaskDeadline(10,tset->head,0);
 
-	// Print the tasks
-	tmp = tset->head;
-	while(tmp != NULL){	
-		printf("%f -- %f -- %f -- %f \n",tmp->util,tmp->wcet , tmp->deadline,tmp->period);
-		tmp = tmp->next;
-	}
-		
+	// Dellocating the memory
+	destroy_tcb_init(&tset->head,0);		
+
 }
 
 

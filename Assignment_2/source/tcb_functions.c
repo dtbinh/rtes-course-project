@@ -2,6 +2,7 @@
 #include <stdlib.h>
 
 #include "structures.h"
+#include "config.h"
 
 
 /*
@@ -19,12 +20,14 @@ void create_tcb_init(struct TCB_t** head, int num)
 
 	// find number of pre-allocated nodes in the linklist
 	tmp = *head;
-	while(tmp != NULL)
-	{
+	if(tmp != NULL){
+		while(tmp->next != NULL)
+		{
+			pre_alloc_num++;
+			tmp = tmp->next;
+		}
 		pre_alloc_num++;
-		tmp = tmp->next;
 	}
-
 	
 	// allocating the memory for the node and add it  to the linklist
 	for(i = 0; i < (num-pre_alloc_num);i++)
@@ -83,6 +86,9 @@ void destroy_tcb_init(struct TCB_t** head, int num)
 	{
 		tmp = *head;
 		for(i = 0;i < num;i++){
+			#if MODE == 0
+                                tmp->util = 0.0;
+                        #endif
 			tmp->assignPriority 	= -1;
 			tmp->currPriority	= -1;
 			tmp->wcet 		= 0.0;
@@ -95,18 +101,33 @@ void destroy_tcb_init(struct TCB_t** head, int num)
 			tmp = tmp->next;
 		}
 
-	}
 
-	// Free the list after and including the tmp pointer
-	while(tmp != NULL)
-	{
-		free_ptr = tmp;
-		tmp = tmp->next;
-		free(free_ptr);
-	}
+		// Free the list after and including the tmp pointer
+		while(tmp != NULL)
+		{
+			free_ptr = tmp;
+			tmp = tmp->next;
+			free(free_ptr);
+		}
 
-	// If the num = 0 then we make head = NULL
-	if(num == 0)
-		*head = NULL;
+		// If the num = 0 then we make head = NULL
+		if(num == 0)
+			*head = NULL;
+	}
+	else{
+		tmp = *head;
+		while(tmp != NULL){
+			#if MODE == 0
+				tmp->util = 0.0;
+			#endif
+			tmp->assignPriority     = -1;
+                        tmp->currPriority       = -1;
+                        tmp->wcet               = 0.0;
+                        tmp->deadline           = 0.0;
+                        tmp->period             = 0.0;
+
+			tmp = tmp->next;
+		}
+	}
 
 }	
