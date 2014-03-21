@@ -4,7 +4,7 @@
 CC = gcc
 
 # Compiler flags
-CFLAGS= -Wall
+CFLAGS= -Wall -pg
 
 # Linking flags
 LDFLAGS= -lm -I../include/  

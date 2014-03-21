@@ -139,7 +139,7 @@ int  rm_analysis(struct task_set* tset)
 
 
 	// Calculate utilization
-	util = calculate_utilization(tset->head,0);
+	util = tset->util_p;
 
 	// If utilization greater than 1 then not schedulable
 	if(util > 1.0){
@@ -166,7 +166,7 @@ int  rm_analysis(struct task_set* tset)
 		}
 	}
 	else{
-		util = calculate_utilization(tset->head,1);
+		util = tset->util_min_p_d;
 		if(util <= rm_util(tset->num_task)){
 		#if LOG_LVL != 0
 			printf("Rate Monotonic : new utilization = %f < %f (U(%d)) : Task set schedulable \n",util,rm_util(tset->num_task),tset->num_task);
@@ -228,26 +228,27 @@ int  rm_response_time(struct TCB_t* head, char* aType)
 
 	// finding the first task in priority order which fails the utilization bound test
 	if(strcmp(aType,"Fixed Priority") != 0){
-	while(tmp != NULL){
-		tmp_util = tmp_util + (tmp->wcet/min(tmp->period,tmp->deadline));
-		if(tmp_util > rm_util(i)){
-		#if LOG_LVL != 0
-			printf("%s : Utilization of first %d task = %f > %f (U(%d)). Not OK. RT analyisis for task %d onward needed. \n",aType,i,tmp_util,rm_util(i),i,i);
-		#endif
-			break;
+		while(tmp != NULL){
+			tmp_util = tmp_util + (tmp->wcet/min(tmp->period,tmp->deadline));
+			if(tmp_util > rm_util(i)){
+			#if LOG_LVL != 0
+				printf("%s : Utilization of first %d task = %f > %f (U(%d)). Not OK. RT analyisis for task %d onward needed. \n",aType,i,tmp_util,rm_util(i),i,i);
+			#endif
+				break;
+			}
+			tmp = tmp->next;
+			i++;
 		}
-		tmp = tmp->next;
-		i++;
-	}
 
-	if(tmp == NULL){
-	#if LOG_LVL != 0
-		printf("%s : UB Analysis : All task meet their utilization bound. Schedulable \n",aType);
-	#endif
-		return 1;
-	}
+		if(tmp == NULL){
+		#if LOG_LVL != 0
+			printf("%s : UB Analysis : All task meet their utilization bound. Schedulable \n",aType);
+		#endif
+			return 1;
+		}	
 
 	}
+
 
 	// Doing RT analysis on the task from i onwards
 	while(tmp != NULL)

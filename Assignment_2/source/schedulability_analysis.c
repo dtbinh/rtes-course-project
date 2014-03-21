@@ -9,7 +9,7 @@
 
 #if MODE == 0
 
-#define NUM_TASKSET	10000
+#define NUM_TASKSET	100
 
 
 /*
@@ -194,6 +194,11 @@ void schedulability_analysis(struct task_set* tset)
 
 					// checking the deadline period relationship
 					tset->period_deadline = common_deadline_period_relation(tset->head);
+			
+					 // Calculate the utilization both wiht min{p,d} and with just p
+			                tset->util_p =  calculate_utilization(tset->head,0);
+				        tset->util_min_p_d = calculate_utilization(tset->head,1);
+
 
 					// Analysing the taskset with EDF , RM and DM
 					test_passed[0] += edf_analysis(tset);

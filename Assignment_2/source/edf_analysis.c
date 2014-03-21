@@ -5,6 +5,15 @@
 #include "structures.h"
 #include "config.h"
 
+
+struct node{
+	int	testingPoint;
+	struct node* next;
+	struct node* prev;
+};
+
+void remove_dup_testingPoint(struct node**);
+
 /*
  *  This functions checks if the total utilization of the task
  *  is less than 1 or not and perform other operation based on the 
@@ -16,14 +25,8 @@ int  edf_analysis(struct task_set* tset)
 
 	float util = 0.0;
 
-	struct TCB_t* tmp;
-
 	// calculating the utilization
-	tmp = tset->head;
-	while(tmp != NULL){
-		util = util + (tmp->wcet /tmp->period);
-		tmp = tmp->next;
-	}
+	util = tset->util_p;
 
 	// If period equals deadline
 	if(tset->period_deadline == 0){
@@ -43,12 +46,7 @@ int  edf_analysis(struct task_set* tset)
 
 	
 	// calculating the new utilization
-	tmp = tset->head;
-	util = 0.0;
-	while(tmp != NULL){
-		util = util + (tmp->wcet /min(tmp->deadline,tmp->period));
-		tmp = tmp->next;
-	}
+	util = tset->util_min_p_d;
 
 
 	// If new utilization is less than 1 then set is schedulable
@@ -65,6 +63,8 @@ int  edf_analysis(struct task_set* tset)
 	printf("EDF: Utilization = %f . Loading Factor Analysis req !! \n",util);
 	#endif
 
+	// sort the task based on the their deadlines
+	dm_assign_priority(tset->head);
 	res = edf_loading_factor_analysis(tset->head);
 
 	return res;
@@ -90,9 +90,13 @@ int  edf_loading_factor_analysis(struct TCB_t* head)
 	float  procDemand;
 	float  loadFactor;
 	float  L;		// busy_period	
-	float* tpArray;
 
 	struct TCB_t* 	tmp;
+
+	struct node*	new;
+	struct node* 	tmp1;
+	struct node* 	tpHead = NULL;
+	
 
 	// Calculating the busy period
 	L = edf_synch_busy_period(head);
@@ -103,15 +107,31 @@ int  edf_loading_factor_analysis(struct TCB_t* head)
 		return 0;
 	}
 
+
 	// Calculating the testing points from 0 to L time
-	// Finding number of testing points 
+	// and storing it in the list
 	tmp = head;
 	while(tmp != NULL)
 	{	
 		i = 0;
 		testingPoint = 0.0;
 		while(testingPoint <= L){
+			new = (struct node*)malloc(sizeof(struct node));
+			new->next = NULL;
+			new->prev = NULL;
 			testingPoint = tmp->deadline + (i*tmp->period);
+			new->testingPoint = testingPoint;
+
+			if(tpHead == NULL){
+				tpHead = new;
+				tmp1 = new;
+			}
+			else{
+				tmp1->next = new;
+				new->prev = tmp1;
+				tmp1 = new;
+			}
+			
 			i++;
 			num_points++;
 		}
@@ -119,29 +139,13 @@ int  edf_loading_factor_analysis(struct TCB_t* head)
 		tmp = tmp->next;
 	}
 
-	//Allocating testing point array
-	tpArray = (float*)malloc(sizeof(float)*num_points);
-
-	// Adding the testing points to the array
-	j = 0;
-	tmp = head;
-        while(tmp != NULL)
-        {
-                i = 0;
-                testingPoint = 0.0;
-                while(testingPoint <= L){
-                	testingPoint = tmp->deadline + (i*tmp->period);
-			if(testingPoint <= L){
-				tpArray[j] = testingPoint;
-				j++;
-			}
-                        i++;
-                }
-                tmp = tmp->next;
-        }
+	// Sorting and removing teh duplicate
+//	remove_dup_testingPoint(&tpHead);
+	
 
 	// Calculating the loading factor at each testing point  in the array
-	for(i = 0;i < num_points;i++)
+	tmp1 = tpHead;
+	while(tmp1 != NULL)
 	{
 		tmp = head;
 		procDemand = 0.0;
@@ -149,16 +153,16 @@ int  edf_loading_factor_analysis(struct TCB_t* head)
 		while(tmp != NULL){
 			j = 0;
 			testingPoint = 0.0;
-			while(testingPoint <= tpArray[i]){
+			while(testingPoint <= tmp1->testingPoint){
 				testingPoint = tmp->deadline + (j*tmp->period);
-				if(testingPoint <= tpArray[i]){
+				if(testingPoint <= tmp1->testingPoint){
 					procDemand = procDemand + tmp->wcet;
 				}
 				j++;
 			}
 			tmp = tmp->next;
 		}
-		loadFactor = procDemand / tpArray[i];
+		loadFactor = procDemand / tmp1->testingPoint;
 
 		// If loading Factor is greater than 1 for any instance then tasks are not schedulabel
 		if(loadFactor > 1){
@@ -167,6 +171,7 @@ int  edf_loading_factor_analysis(struct TCB_t* head)
 		#endif
 			return 0;
 		}
+		tmp1 = tmp1->next;
 	}
 
 	#if LOG_LVL != 0
@@ -215,3 +220,49 @@ float edf_synch_busy_period(struct TCB_t* head)
 	return busyPeriod2;
 
 }
+
+
+
+
+/*
+ *  This function sort the testing points and remove any duplicates.
+ */
+void remove_dup_testingPoint(struct node** head)
+{
+        struct node* tmp = NULL;
+        struct node* rem = NULL;
+        struct node* fmem = NULL;
+
+        tmp = *head;
+
+        while(tmp != NULL)
+        {
+                if(tmp->next == NULL)
+                        break;
+                rem = tmp->next;
+                while(rem != NULL){
+                        if(rem->testingPoint == tmp->testingPoint){
+                                if(rem->next != NULL){
+                                        rem->next->prev = rem->prev;
+                                        rem->prev->next = rem->next;
+                                        fmem = rem;
+                                        rem = rem->prev;
+                                }
+                                else{
+                                        rem->prev->next = rem->next;
+                                        fmem = rem;
+                                        rem = rem->prev;
+                                }
+
+                                if(fmem)
+                                        free(fmem);
+                        }
+                        rem = rem->next;
+                }
+                tmp = tmp->next;
+
+        }
+
+
+}
+

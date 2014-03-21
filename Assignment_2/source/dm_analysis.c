@@ -85,19 +85,13 @@ int  dm_analysis(struct task_set* tset)
 	float 	util = 0.0;	
 
 
-	struct TCB_t* tmp;
 
 	// Assign the priority to the task based on their period
 	dm_assign_priority(tset->head);
 
 
 	// Calculate utilization
-	tmp = tset->head;
-	while(tmp != NULL)
-	{
-		util = util + (tmp->wcet / tmp->period);
-		tmp = tmp->next;
-	}
+	util = tset->util_p;
 
 	// If utilization greater than 1 then not schedulable
 	if(util > 1.0){
@@ -124,12 +118,7 @@ int  dm_analysis(struct task_set* tset)
 	} // If deadline not equals period then we need to do Response Time analysis 
 	else{
 		// Calculating new utilization
-		tmp = tset->head;
-		util = 0.0;
-		while(tmp != NULL){
-			util = util + (tmp->wcet / min(tmp->deadline,tmp->period));
-			tmp = tmp->next;
-		}
+		util = tset->util_min_p_d;
 		if(util <= rm_util(tset->num_task)){
 		#if LOG_LVL != 0
 			printf("Deadline Monotonic : new utilization = %f < %f (U(%d)) : Task set schedulable \n",util,rm_util(tset->num_task),tset->num_task);

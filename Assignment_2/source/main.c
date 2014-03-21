@@ -14,10 +14,7 @@ int main(int argc,char** argv)
 	int 	num_task = 0;
 	int	priority;
 	
-	int 	rm_result;
-	int	dm_result;
-	int	fp_result;
-	int 	edf_result;
+	int 	result;
 
 	float 	wcet;
 	float 	deadline;
@@ -73,18 +70,21 @@ int main(int argc,char** argv)
 			printf("Task set %d : Period == Deadline \n",numTaskSet);
 	#endif
 
+		// Calculate the utilization both wiht min{p,d} and with just p
+		curr_task_set.util_p = 	calculate_utilization(curr_task_set.head,0);
+		curr_task_set.util_min_p_d = calculate_utilization(curr_task_set.head,1);	
 
 		// rate monotonic analysis
-		rm_result = rm_analysis(&curr_task_set);
+		result = rm_analysis(&curr_task_set);
 
 		// Deadline Monotonic analysis
-		dm_result = dm_analysis(&curr_task_set);
+		result = dm_analysis(&curr_task_set);
 
 		// Fixed priority analysis
-		fp_result = fixed_priority_analysis(&curr_task_set);
+		result = fixed_priority_analysis(&curr_task_set);
 		
 		// EDF analysis
-		edf_result = edf_analysis(&curr_task_set);
+		result = edf_analysis(&curr_task_set);
 	
 	
 					
@@ -95,7 +95,8 @@ int main(int argc,char** argv)
 	#if LOG_LVL != 0
 		printf("\n\n");
 	#endif
-		sleep(1);
+		// to avoid the warning
+		result++;
 		
 	}
 	#else

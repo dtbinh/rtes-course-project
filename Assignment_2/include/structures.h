@@ -18,6 +18,8 @@ struct task_set{
 	struct TCB_t*  	head;
 	int		num_task;
 	int		period_deadline;
+	double		util_p;
+	double		util_min_p_d;
 };
 
 extern inline float min(float, float );

@@ -13,14 +13,9 @@ int fixed_priority_analysis(struct task_set* tset)
 	int 	res;
 
 	float util = 0.0;
-	struct TCB_t* tmp;
 
 	//check if the utilization is less than 1
-	tmp = tset->head;
-	while(tmp != NULL){
-		util = util + (tmp->wcet / tmp->period);
-		tmp = tmp->next;
-	}
+	util = tset->util_p;
 
 	if(util > 1.0){
 	#if LOG_LVL != 0
