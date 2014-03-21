@@ -7,7 +7,7 @@ Model {
     NumRootInports	    0
     NumRootOutports	    0
     ParameterArgumentNames  ""
-    ComputedModelVersion    "1.543"
+    ComputedModelVersion    "1.544"
     NumModelReferences	    0
     NumTestPointedSignals   0
   }
@@ -66,9 +66,9 @@ Model {
   ModifiedByFormat	  "%<Auto>"
   LastModifiedBy	  "shashank"
   ModifiedDateFormat	  "%<Auto>"
-  LastModifiedDate	  "Fri Mar 21 13:43:01 2014"
-  RTWModifiedTimeStamp	  317310179
-  ModelVersionFormat	  "1.%<AutoIncrement:543>"
+  LastModifiedDate	  "Fri Mar 21 14:00:21 2014"
+  RTWModifiedTimeStamp	  317311189
+  ModelVersionFormat	  "1.%<AutoIncrement:544>"
   ConfigurationManager	  "none"
   SampleTimeColors	  off
   SampleTimeAnnotations	  off
@@ -950,6 +950,19 @@ Model {
       SampleTime	      "-1"
     }
     Block {
+      BlockType		      SignalSpecification
+      OutMin		      "[]"
+      OutMax		      "[]"
+      OutDataTypeStr	      "Inherit: auto"
+      LockScale		      off
+      BusOutputAsStruct	      off
+      Dimensions	      "-1"
+      VarSizeSig	      "Inherit"
+      SampleTime	      "-1"
+      SignalType	      "auto"
+      SamplingMode	      "auto"
+    }
+    Block {
       BlockType		      SubSystem
       ShowPortLabels	      "FromPortIcon"
       Permissions	      "ReadWrite"
@@ -1037,7 +1050,20 @@ Model {
     ShowPageBoundaries	    off
     ZoomFactor		    "100"
     ReportName		    "simulink-default.rpt"
-    SIDHighWatermark	    "1468"
+    SIDHighWatermark	    "1472"
+    Block {
+      BlockType		      SignalSpecification
+      Name		      "Signal Specification"
+      SID		      "1472"
+      Position		      [385, 398, 465, 422]
+      ZOrder		      73
+      BlockMirror	      on
+      OutMin		      "6"
+      OutMax		      "6"
+      OutDataTypeStr	      "double"
+      LockScale		      on
+      VarSizeSig	      "No"
+    }
     Block {
       BlockType		      Reference
       Name		      "Soft Real Time"
@@ -1291,28 +1317,6 @@ Model {
     }
     Block {
       BlockType		      Reference
-      Name		      "UDP Receive"
-      SID		      "1017"
-      Ports		      [0, 1]
-      Position		      [560, 385, 670, 435]
-      ZOrder		      51
-      BlockMirror	      on
-      Priority		      "2"
-      LibraryVersion	      "1.84"
-      SourceBlock	      "instrumentlib/UDP Receive"
-      SourceType	      "UDP Receive"
-      Host		      "localhost"
-      Port		      "9092"
-      LocalPort		      "9092"
-      DataSize		      "[6  1]"
-      EnableBlockingMode      on
-      Timeout		      "5"
-      SampleTime	      "0.1"
-      DataType		      "double"
-      ByteOrder		      "BigEndian"
-    }
-    Block {
-      BlockType		      Reference
       Name		      "UDP Receive1"
       SID		      "715"
       Ports		      [0, 1]
@@ -1334,20 +1338,28 @@ Model {
     }
     Block {
       BlockType		      Reference
-      Name		      "UDP Send"
-      SID		      "716"
-      Ports		      [1]
-      Position		      [590, 187, 700, 233]
-      ZOrder		      42
-      Priority		      "2"
-      LibraryVersion	      "1.84"
-      SourceBlock	      "instrumentlib/UDP Send"
-      SourceType	      "UDP Send"
-      Host		      "localhost"
-      Port		      "9090"
-      LocalPort		      "9090"
-      EnableBlockingMode      on
-      ByteOrder		      "BigEndian"
+      Name		      "UDP Receive2"
+      SID		      "1470"
+      Ports		      [0, 2]
+      Position		      [560, 395, 670, 455]
+      ZOrder		      71
+      BlockMirror	      on
+      LibraryVersion	      "1.105"
+      FontName		      "arial"
+      SourceBlock	      "dspnetwork/UDP Receive"
+      SourceType	      "UDP Receive"
+      localURL		      "'0.0.0.0'"
+      localPort		      "9093"
+      remoteURL		      "'0.0.0.0'"
+      remotePort	      "-1"
+      recvBufferSize	      "8192"
+      dims		      "6"
+      signalDatatype	      "double"
+      isVarSize		      off
+      showBlockingTime	      on
+      blockingTime	      "inf"
+      sampletime	      "0.1"
+      blockPlatform	      "LINUX"
     }
     Block {
       BlockType		      Reference
@@ -1366,6 +1378,26 @@ Model {
       LocalPort		      "9092"
       EnableBlockingMode      on
       ByteOrder		      "BigEndian"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "UDP Send2"
+      SID		      "1471"
+      Ports		      [1]
+      Position		      [560, 180, 670, 240]
+      ZOrder		      72
+      LibraryVersion	      "1.105"
+      FontName		      "arial"
+      SourceBlock	      "dspnetwork/UDP Send"
+      SourceType	      "UDP Send"
+      remoteURL		      "'localhost'"
+      remotePort	      "9090"
+      localURL		      "'0.0.0.0'"
+      localPortSource	      "Specify via dialog"
+      localPort		      "9091"
+      sampletime	      "-1"
+      blockPlatform	      "LINUX"
+      separateLengthPort      "0"
     }
     Block {
       BlockType		      SubSystem
@@ -7429,18 +7461,10 @@ Model {
       DstPort		      1
     }
     Line {
-      ZOrder		      100
-      SrcBlock		      "UDP Receive"
-      SrcPort		      1
-      Points		      [-220, 0]
-      DstBlock		      "controller"
-      DstPort		      1
-    }
-    Line {
-      ZOrder		      92
+      ZOrder		      103
       SrcBlock		      "controller"
       SrcPort		      1
-      DstBlock		      "UDP Send"
+      DstBlock		      "UDP Send2"
       DstPort		      1
     }
     Line {
@@ -7449,6 +7473,22 @@ Model {
       SrcPort		      1
       DstBlock		      "controller"
       DstPort		      2
+    }
+    Line {
+      ZOrder		      104
+      SrcBlock		      "UDP Receive2"
+      SrcPort		      1
+      Points		      [0, 0]
+      DstBlock		      "Signal Specification"
+      DstPort		      1
+    }
+    Line {
+      ZOrder		      105
+      SrcBlock		      "Signal Specification"
+      SrcPort		      1
+      Points		      [-45, 0]
+      DstBlock		      "controller"
+      DstPort		      1
     }
   }
 }
