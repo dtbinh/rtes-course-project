@@ -1,4 +1,4 @@
-	Schedulability Analysis 
+Schedulability Analysis 
 ================================================================
 
 This directory contains 4 directories:
@@ -27,57 +27,56 @@ This directory contains 4 directories:
 
 
 
-	Task 1 Compilation
+Task 1 Compilation
 ==================================
 To compile the project for Task 1:
 NOTE: go to the ../include/config.h file and change the LOG_LVL to 1 and MODE to 1
 
-$bash:~  make clean
-$bash:~  make main
+	$bash:~  make clean
+	$bash:~  make main
 This command will compile and generate the excutable in the ./bin folder with name main.
 
-	Task 1 Execution
+Task 1 Execution
 =================================
 To execute the Task 1project go the bin directory or use the fullpath :
 
 if in ./bin folder:
-$bash:~	 ./main < <input_filename>
+	$bash:~	 ./main < <input_filename>
 
 if in ./source folder:
-$bash:~  sudo ../bin/main <  <input_filename>
+	$bash:~  sudo ../bin/main <  <input_filename>
 
 
 
 
-	Task 2 Compilation
+Task 2 Compilation
 ==================================
 To compile the project for Task 2:
 NOTE: go to the ../include/config.h file and change the LOG_LVL to 0 and MODE to 0
 
-$bash:~  make clean
-$bash:~  make main
+	$bash:~  make clean
+	$bash:~  make main
 This command will compile and generate the excutable in the ./bin folder with name main.
 
 
-	Task 2 Execution
+Task 2 Execution
 =================================
 To execute the Task 1project go the bin directory or use the fullpath :
 
 if in ./bin folder:
-$bash:~	 ./main 
+	$bash:~	 ./main 
 
 if in ./source folder:
-$bash:~  ../bin/main 
+	$bash:~  ../bin/main 
 
 NOTE: During execution of task 2 .. the program will output the name of the text file created in the ../test direcotry 
       and a message will appear when the computation is done.
 
 
-	Cleaning
+Cleaning
 ================================
 To clean the project directory go to the ./source directory and execute this command:
-
-$bash:~ make clean
+	$bash:~ make clean
 
 
 
