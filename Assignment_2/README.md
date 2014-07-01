@@ -1,7 +1,7 @@
 Schedulability Analysis 
 ================================================================
 
-This directory contains 4 directories:
+This directory contains 4 directories
 1)./include      ---	 This directory contains two header file named "structures.h" and "config.h"
 			 structures.h contains all the structures and function declarations used in the project.
 			 config.h contains just two configuration option which changes the behaviour and the log level of the program.
@@ -29,7 +29,7 @@ This directory contains 4 directories:
 
 Task 1 Compilation
 ==================================
-To compile the project for Task 1:
+To compile the project for Task 1
 NOTE: go to the ../include/config.h file and change the LOG_LVL to 1 and MODE to 1
 
 	$bash:~  make clean
@@ -40,10 +40,10 @@ Task 1 Execution
 =================================
 To execute the Task 1project go the bin directory or use the fullpath :
 
-if in ./bin folder:
+if in ./bin folder
 	$bash:~	 ./main < <input_filename>
 
-if in ./source folder:
+if in ./source folder
 	$bash:~  sudo ../bin/main <  <input_filename>
 
 
@@ -51,7 +51,7 @@ if in ./source folder:
 
 Task 2 Compilation
 ==================================
-To compile the project for Task 2:
+To compile the project for Task 2
 NOTE: go to the ../include/config.h file and change the LOG_LVL to 0 and MODE to 0
 
 	$bash:~  make clean
@@ -63,10 +63,10 @@ Task 2 Execution
 =================================
 To execute the Task 1project go the bin directory or use the fullpath :
 
-if in ./bin folder:
+if in ./bin folder
 	$bash:~	 ./main 
 
-if in ./source folder:
+if in ./source folder
 	$bash:~  ../bin/main 
 
 NOTE: During execution of task 2 .. the program will output the name of the text file created in the ../test direcotry 
@@ -75,7 +75,7 @@ NOTE: During execution of task 2 .. the program will output the name of the text
 
 Cleaning
 ================================
-To clean the project directory go to the ./source directory and execute this command:
+To clean the project directory go to the ./source directory and execute this command
 	$bash:~ make clean
 
 
