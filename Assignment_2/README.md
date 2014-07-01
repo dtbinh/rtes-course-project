@@ -42,10 +42,10 @@ Task 1 Execution
 To execute the Task 1project go the bin directory or use the fullpath :
 
 if in ./bin folder
-$bash:~	 ./main < <input_filename>
+	`$bash:~ ./main < <input_filename>`
 
 if in ./source folder
-$bash:~  sudo ../bin/main <  <input_filename>
+	`$bash:~  sudo ../bin/main <  <input_filename>`
 
 
 
@@ -65,10 +65,10 @@ Task 2 Execution
 To execute the Task 1project go the bin directory or use the fullpath :
 
 if in ./bin folder
-$bash:~	 ./main 
+	`$bash:~ ./main `
 
 if in ./source folder
-$bash:~  ../bin/main 
+	`$bash:~  ../bin/main`
 
 NOTE: During execution of task 2 .. the program will output the name of the text file created in the ../test direcotry 
       and a message will appear when the computation is done.
